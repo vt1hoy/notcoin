@@ -10,7 +10,11 @@ import {
   type WorldPathDef,
 } from '../game/countrySpread'
 import { useGameStore } from '../store/gameStore'
+import { publicAssetUrl } from '../utils/publicAssetUrl'
 import './MapStage.css'
+
+const WORLD_MAP_URL = publicAssetUrl('maps/world.svg')
+const NOTCOIN_LOGO_URL = publicAssetUrl('maps/notcoin_logo.svg')
 
 function pathDomId(renderId: string): string {
   return `wm-${renderId}`
@@ -56,7 +60,7 @@ export function MapStage() {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/maps/world.svg')
+    fetch(WORLD_MAP_URL)
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status))
         return r.text()
@@ -288,31 +292,6 @@ export function MapStage() {
           ))}
         </g>
 
-        <g id="seed-layer" pointerEvents="none">
-          {infectionSeeds.map((seed) => {
-            const r = 2.2 + seed.growthLevel * 11
-            const op = 0.45 + seed.growthLevel * 0.42
-            return (
-              <g
-                key={seed.id}
-                className="map-infection-seed"
-                transform={`translate(${seed.x} ${seed.y})`}
-              >
-                <circle
-                  className="map-infection-seed__glow"
-                  r={r * 1.85}
-                  style={{ opacity: op * 0.35 }}
-                />
-                <circle
-                  className="map-infection-seed__core"
-                  r={r}
-                  style={{ opacity: op }}
-                />
-              </g>
-            )
-          })}
-        </g>
-
         <g id="popup-layer">
           {popups.map((p) => (
             <g key={p.id} className="map-popup" transform={`translate(${p.x} ${p.y})`}>
@@ -325,15 +304,25 @@ export function MapStage() {
                 <circle className="map-popup__halo" r={41} />
                 <g clipPath="url(#map-popup-coin-clip)">
                   <circle className="map-popup__disc" r={41} cx={0} cy={0} />
-                  <image
-                    className="map-popup__logo"
-                    href="/maps/notcoin_logo.svg"
-                    x={-44}
-                    y={-44}
-                    width={88}
-                    height={88}
-                    preserveAspectRatio="xMidYMid slice"
-                  />
+                  {/* Logo: foreignObject + img (reliable in WebViews); file in public/maps/notcoin_logo.svg */}
+                  <foreignObject
+                    x={-41}
+                    y={-41}
+                    width={82}
+                    height={82}
+                    className="map-popup__logo-host"
+                  >
+                    <div className="map-popup__logo-box">
+                      <img
+                        className="map-popup__logo-img"
+                        src={NOTCOIN_LOGO_URL}
+                        alt=""
+                        width={82}
+                        height={82}
+                        draggable={false}
+                      />
+                    </div>
+                  </foreignObject>
                 </g>
               </g>
               <circle
@@ -360,6 +349,31 @@ export function MapStage() {
               </g>
             </g>
           ) : null}
+        </g>
+
+        <g id="seed-layer" pointerEvents="none">
+          {infectionSeeds.map((seed) => {
+            const r = 5 + seed.growthLevel * 12
+            const op = 0.78 + seed.growthLevel * 0.2
+            return (
+              <g
+                key={seed.id}
+                className="map-infection-seed"
+                transform={`translate(${seed.x} ${seed.y})`}
+              >
+                <circle
+                  className="map-infection-seed__glow"
+                  r={r * 1.75}
+                  style={{ opacity: op * 0.5 }}
+                />
+                <circle
+                  className="map-infection-seed__core"
+                  r={r}
+                  style={{ opacity: op }}
+                />
+              </g>
+            )
+          })}
         </g>
       </svg>
     </div>
