@@ -1,0 +1,82 @@
+.settings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.settings-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.settings-modal__panel {
+  position: relative;
+  width: min(420px, 100%);
+  border-radius: 14px;
+  border: 1px solid #2a3346;
+  background: #0f141f;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+}
+
+.settings-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid #222a38;
+}
+
+.settings-modal__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #eef3ff;
+}
+
+.settings-modal__close {
+  border: 0;
+  background: transparent;
+  color: #b7c2df;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.settings-modal__body {
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #dbe4ff;
+  font-size: 14px;
+}
+
+.settings-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #8b98b3;
+  line-height: 1.35;
+}
+
+.danger-button {
+  border-radius: 10px;
+  border: 1px solid #5c2a2a;
+  background: #2a1212;
+  color: #ffd6d6;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.danger-button:active {
+  transform: translateY(1px);
+}

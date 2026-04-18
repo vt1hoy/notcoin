@@ -1,0 +1,14 @@
+[
+  {"id":"holders_a1","title":"Transparency Notes","description":"Plain-language memos on flows, fees, and what can go wrong.","branch":"A","tier":1,"parentId":null,"baseCost":98,"holdersDelta":1000,"trustDelta":1.95},
+  {"id":"holders_a2","title":"Treasury Backstop","description":"Visible reserve slice the market can point to when spreads blow out.","branch":"A","tier":2,"parentId":"holders_a1","baseCost":232,"holdersDelta":1580,"trustDelta":2.45},
+  {"id":"holders_a3","title":"Crisis Comms","description":"Pre-written wires for shocks: who speaks, what links, what not to say.","branch":"A","tier":3,"parentId":"holders_a2","baseCost":468,"holdersDelta":2180,"trustDelta":2.85},
+  {"id":"holders_a4","title":"Reserve Proof","description":"Attested snapshots and cadence the community can audit.","branch":"A","tier":4,"parentId":"holders_a3","baseCost":720,"holdersDelta":2780,"trustDelta":3.25},
+  {"id":"holders_b1","title":"Cold Wallet Cohort","description":"Onboard long-horizon wallets with custody checklists that fit real life.","branch":"B","tier":1,"parentId":null,"baseCost":102,"holdersDelta":900,"trustDelta":1.75},
+  {"id":"holders_b2","title":"Liquidity Support","description":"Measured bids and depth commitments when venues wobble.","branch":"B","tier":2,"parentId":"holders_b1","baseCost":245,"holdersDelta":1480,"trustDelta":2.25},
+  {"id":"holders_b3","title":"Exchange Depth","description":"Co-signed routes that widen top-of-book on busy days.","branch":"B","tier":3,"parentId":"holders_b2","baseCost":505,"holdersDelta":2080,"trustDelta":2.75},
+  {"id":"holders_b4","title":"Buyback Rules","description":"Clear rules for when treasury steps in—and when it does not.","branch":"B","tier":4,"parentId":"holders_b3","baseCost":760,"holdersDelta":2680,"trustDelta":3.15},
+  {"id":"holders_c1","title":"Staking Literacy","description":"Short explainers that reduce panic sells when APY headlines lie.","branch":"C","tier":1,"parentId":null,"baseCost":94,"holdersDelta":1060,"trustDelta":1.85},
+  {"id":"holders_c2","title":"Long Hold Campaign","description":"Seasonal narrative for conviction: charts optional, receipts required.","branch":"C","tier":2,"parentId":"holders_c1","baseCost":228,"holdersDelta":1650,"trustDelta":2.35},
+  {"id":"holders_c3","title":"Regional Desks","description":"Local moderators translate policy noise into calm FAQs.","branch":"C","tier":3,"parentId":"holders_c2","baseCost":478,"holdersDelta":2250,"trustDelta":2.8},
+  {"id":"holders_c4","title":"Signal Hygiene","description":"Verified feeds, rate limits, and one canonical rumor channel.","branch":"C","tier":4,"parentId":"holders_c3","baseCost":735,"holdersDelta":2880,"trustDelta":3.2}
+]

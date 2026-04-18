@@ -1,0 +1,32 @@
+:root {
+  color-scheme: dark;
+  --bg: #07090f;
+  --text: #e9eefc;
+  --muted: #8b98b3;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.35;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+button,
+input {
+  font: inherit;
+}

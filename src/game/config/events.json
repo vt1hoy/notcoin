@@ -1,0 +1,203 @@
+{
+  "world": [
+    {
+      "id": "w_tariff_red",
+      "label": "Tariff headlines hit risk assets; desks de-risk into the weekend",
+      "type": "negative",
+      "pricePct": -0.22,
+      "trustDelta": -2,
+      "holdersDelta": -600,
+      "weight": 2
+    },
+    {
+      "id": "w_mideast_red",
+      "label": "Mideast tensions flare; oil jumps and crypto correlation turns ugly",
+      "type": "negative",
+      "pricePct": -0.18,
+      "trustDelta": -3,
+      "weight": 2
+    },
+    {
+      "id": "w_europe_red",
+      "label": "Eastern Europe escalation fears dominate macro channels",
+      "type": "negative",
+      "pricePct": -0.16,
+      "trustDelta": -2,
+      "believersDelta": -350,
+      "weight": 1
+    },
+    {
+      "id": "w_etf_green",
+      "label": "Spot crypto ETF flows turn positive; allocators nibble memecoins again",
+      "type": "positive",
+      "pricePct": 0.2,
+      "trustDelta": 3,
+      "holdersDelta": 1400,
+      "weight": 2
+    },
+    {
+      "id": "w_telegram_green",
+      "label": "Telegram ecosystem report: mini-apps and taps drive fresh user highs",
+      "type": "positive",
+      "pricePct": 0.16,
+      "trustDelta": 2,
+      "buildersDelta": 120,
+      "weight": 2
+    },
+    {
+      "id": "w_outage_red",
+      "label": "Major exchange flags degraded matching; withdrawals queue for hours",
+      "type": "negative",
+      "pricePct": -0.28,
+      "trustDelta": -4,
+      "holdersDelta": -900,
+      "weight": 1
+    },
+    {
+      "id": "w_whale_green",
+      "label": "Whale wallets quietly stack clips; on-chain trackers light up",
+      "type": "positive",
+      "pricePct": 0.12,
+      "trustDelta": 1,
+      "holdersDelta": 1100,
+      "weight": 1
+    },
+    {
+      "id": "w_listing_green",
+      "label": "New venue lists spot Notcoin; liquidity routers show two-way depth",
+      "type": "positive",
+      "pricePct": 0.22,
+      "trustDelta": 3,
+      "holdersDelta": 1200,
+      "weight": 1
+    },
+    {
+      "id": "w_policy_gray",
+      "label": "Regulators publish neutral guidance on memecoin disclosures",
+      "type": "neutral",
+      "pricePct": 0,
+      "trustDelta": 1,
+      "weight": 1
+    },
+    {
+      "id": "w_fud_red",
+      "label": "Anonymous thread questions user metrics; mods label it unverified",
+      "type": "negative",
+      "pricePct": -0.12,
+      "trustDelta": -2,
+      "believersDelta": -400,
+      "weight": 1
+    },
+    {
+      "id": "w_tech_green",
+      "label": "Core network upgrade ships early; builders post green dashboards",
+      "type": "positive",
+      "pricePct": 0.18,
+      "buildersDelta": 150,
+      "trustDelta": 2,
+      "weight": 1
+    },
+    {
+      "id": "w_liquidity_red",
+      "label": "Market makers widen spreads after a volatility spike",
+      "type": "negative",
+      "pricePct": -0.2,
+      "trustDelta": -1,
+      "weight": 1
+    },
+    {
+      "id": "w_comm_gray",
+      "label": "Community vote ends with no change to emission schedule",
+      "type": "neutral",
+      "pricePct": 0,
+      "weight": 1
+    }
+  ],
+  "internal": [
+    {
+      "id": "i_ops_neutral",
+      "label": "Ops: routine maintenance window; no user funds at risk",
+      "type": "neutral",
+      "pricePct": 0,
+      "weight": 9
+    },
+    {
+      "id": "i_comms_green",
+      "label": "Comms ships transparency pack: flows, fees, and runway in one page",
+      "type": "positive",
+      "pricePct": 0.1,
+      "trustDelta": 2,
+      "weight": 7
+    },
+    {
+      "id": "i_audit_red",
+      "label": "Internal audit: tighten vendor keys and session rotation",
+      "type": "negative",
+      "pricePct": -0.15,
+      "trustDelta": -3,
+      "weight": 8
+    },
+    {
+      "id": "i_hr_gray",
+      "label": "People: leadership offsite; no roadmap drops this week",
+      "type": "neutral",
+      "pricePct": 0,
+      "weight": 6
+    },
+    {
+      "id": "i_treasury_green",
+      "label": "Treasury: reserves above policy floor; stress sims look boring",
+      "type": "positive",
+      "pricePct": 0.08,
+      "trustDelta": 1,
+      "weight": 6
+    },
+    {
+      "id": "i_legal_red",
+      "label": "Legal: inbound questions on legacy token sales; counsel engaged",
+      "type": "negative",
+      "pricePct": -0.28,
+      "trustDelta": -5,
+      "weight": 5
+    },
+    {
+      "id": "i_miniapp_green",
+      "label": "Product: mini-app shell passes review; bot menu link ready for QA",
+      "type": "positive",
+      "pricePct": 0.09,
+      "trustDelta": 2,
+      "buildersDelta": 80,
+      "weight": 6
+    },
+    {
+      "id": "i_security_neutral",
+      "label": "Security: phishing wave reported; official channels only",
+      "type": "neutral",
+      "pricePct": 0,
+      "trustDelta": -1,
+      "weight": 5
+    }
+  ],
+  "fluffTicker": [
+    "Macro desks: tariffs and energy prints steal the morning tape.",
+    "ETF desks report two-way flows; memecoins trade their own beta.",
+    "Telegram charts show mini-app opens tracking ahead of last week.",
+    "Whale labels: accumulation bands widen but no single-wallet panic.",
+    "Regional nodes: latency normal; no coordinated outage flags.",
+    "Believers thread memes; engagement up, conviction mixed.",
+    "Builders ship a patch; changelog is mostly stability and polish.",
+    "Trust trackers: sentiment drift still inside usual noise bands.",
+    "Liquidity routers show balanced depth on small clips.",
+    "Options skew unchanged; nobody is paying for tail drama today.",
+    "Cross-border flows steady; FX headlines louder than on-chain.",
+    "Press asks for comment; comms circulates a calm holding statement.",
+    "Validator chatter: routine; no emergency rotations logged.",
+    "Retail order flow mean-reverts after a short burst.",
+    "Stablecoin bridges: volumes flat; no peg drama on scanners.",
+    "Notcoin lifestyle accounts post another tap streak leaderboard.",
+    "Holders circle transparency notes; mods pin the official FAQ.",
+    "Internal war room: five-minute sim, long-term conviction unchanged.",
+    "Spot desks report quiet two-way flow into the afternoon.",
+    "Social feeds churn rumor velocity; on-chain stays flat."
+  ]
+}

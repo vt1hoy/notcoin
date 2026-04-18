@@ -1,0 +1,120 @@
+.event-banner-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10px 12px 0;
+  background: rgba(4, 6, 12, 0.55);
+  pointer-events: auto;
+}
+
+.event-banner {
+  width: min(720px, 100%);
+  margin-top: max(8px, env(safe-area-inset-top, 0px));
+  border-radius: 0 0 14px 14px;
+  overflow: hidden;
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(165deg, #141c2e, #0c101c);
+}
+
+.event-banner--green {
+  border-color: rgba(110, 235, 154, 0.35);
+}
+
+.event-banner--red {
+  border-color: rgba(255, 139, 139, 0.4);
+}
+
+.event-banner--gray {
+  border-color: rgba(154, 167, 191, 0.3);
+}
+
+.event-banner__rail {
+  width: 6px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #5b7cfa, #3d52a8);
+}
+
+.event-banner--green .event-banner__rail {
+  background: linear-gradient(180deg, #6beb9a, #2d8f5c);
+}
+
+.event-banner--red .event-banner__rail {
+  background: linear-gradient(180deg, #ff8b8b, #b63d3d);
+}
+
+.event-banner--gray .event-banner__rail {
+  background: linear-gradient(180deg, #9aa7bf, #5a6578);
+}
+
+.event-banner__body {
+  flex: 1;
+  padding: 14px 18px 16px;
+  min-width: 0;
+}
+
+.event-banner__eyebrow {
+  margin: 0 0 4px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8b98b3;
+}
+
+.event-banner__title {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #f0f4ff;
+}
+
+.event-banner__impact {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.event-banner__impact--green {
+  color: #7af0a8;
+}
+
+.event-banner__impact--red {
+  color: #ff9b9b;
+}
+
+.event-banner__impact--gray {
+  color: #b8c4df;
+}
+
+.event-banner__desc {
+  margin: 0 0 14px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #b8c4df;
+}
+
+.event-banner__cta {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #0a0e18;
+  background: linear-gradient(180deg, #f5d142, #d4a41a);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.event-banner__cta:hover {
+  filter: brightness(1.06);
+}
+
+.event-banner__cta:active {
+  transform: translateY(1px);
+}

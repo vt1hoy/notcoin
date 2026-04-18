@@ -1,0 +1,43 @@
+.frens-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.frens-panel__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.frens-panel__tab {
+  border: 1px solid #2a3346;
+  border-radius: 8px;
+  background: #0e131c;
+  color: #b8c4df;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.frens-panel__tab:hover {
+  color: #e9eefc;
+  border-color: #3a455c;
+}
+
+.frens-panel__tab--active {
+  color: #0a0e18;
+  background: linear-gradient(180deg, #e8ecf8, #c5ccde);
+  border-color: #9aa7bf;
+}
+
+.frens-panel__content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  max-height: min(62vh, 520px);
+}

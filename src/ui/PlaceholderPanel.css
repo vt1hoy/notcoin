@@ -1,0 +1,64 @@
+.panel-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: end center;
+}
+
+.panel-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.panel-overlay__sheet {
+  position: relative;
+  width: min(720px, 100%);
+  height: min(72vh, 640px);
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  border: 1px solid #2a3346;
+  border-bottom: 0;
+  background: #0f141f;
+  box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.35);
+}
+
+.panel-overlay__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid #222a38;
+}
+
+.panel-overlay__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #eef3ff;
+}
+
+.panel-overlay__close {
+  border: 0;
+  background: transparent;
+  color: #b7c2df;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.panel-overlay__body {
+  padding: 12px;
+  color: #dbe4ff;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.panel-overlay__muted {
+  margin: 0;
+  color: #8b98b3;
+}

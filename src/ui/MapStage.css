@@ -1,0 +1,151 @@
+.map-stage {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #222a38;
+  background: #05060a;
+}
+
+.map-stage--loading,
+.map-stage--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.map-stage__loading,
+.map-stage__err {
+  font-size: 14px;
+  color: #9aa8c4;
+}
+
+.map-stage__err {
+  color: #ff8b8b;
+}
+
+.map-stage__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.map-country {
+  fill: #0b0f1a;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 0.5;
+  cursor: pointer;
+  transition: fill 0.12s ease, stroke 0.12s ease;
+}
+
+.map-country--hover {
+  fill: #121a2e;
+  stroke: rgba(255, 255, 255, 0.22);
+}
+
+.map-infection-tint {
+  fill: rgb(220, 60, 60);
+  pointer-events: none;
+}
+
+.map-infection-cluster {
+  pointer-events: none;
+}
+
+.map-infection-dot {
+  fill: #ff5555;
+  opacity: 0.82;
+}
+
+.map-infection-seed {
+  pointer-events: none;
+}
+
+.map-infection-seed__glow {
+  fill: #ff3b3b;
+  filter: blur(2.5px);
+}
+
+.map-infection-seed__core {
+  fill: #d62828;
+  stroke: rgba(255, 120, 120, 0.55);
+  stroke-width: 0.35;
+}
+
+.map-popup__hit {
+  fill: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.map-popup__ambient {
+  pointer-events: none;
+}
+
+.map-popup__pulse {
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mapPopupPulse 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(255, 236, 170, 0.72))
+    drop-shadow(0 0 9px rgba(245, 190, 55, 0.42))
+    drop-shadow(0 0 18px rgba(210, 150, 30, 0.2));
+}
+
+@keyframes mapPopupPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.map-popup__halo {
+  fill: rgba(10, 12, 20, 0.62);
+  stroke: rgba(255, 224, 130, 0.62);
+  stroke-width: 2.25;
+  pointer-events: none;
+}
+
+.map-popup__disc {
+  fill: #121018;
+  pointer-events: none;
+}
+
+.map-popup__logo {
+  pointer-events: none;
+  filter: brightness(0) saturate(100%) invert(88%) sepia(28%) saturate(900%)
+    hue-rotate(358deg) contrast(1.05);
+}
+
+@keyframes mapPopupTapBurst {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+.map-popup--tap-burst {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mapPopupTapBurst 0.26s ease-out forwards;
+}
+
+.map-popup__burst-ring {
+  fill: none;
+  stroke: rgba(255, 232, 160, 0.85);
+  stroke-width: 2.25;
+  transform-box: fill-box;
+  transform-origin: center;
+}

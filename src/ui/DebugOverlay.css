@@ -1,0 +1,59 @@
+.debug-overlay {
+  position: fixed;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+.debug-overlay__toggle {
+  pointer-events: auto;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 200, 120, 0.45);
+  background: rgba(40, 28, 12, 0.92);
+  color: #ffe8c8;
+  cursor: pointer;
+}
+
+.debug-overlay__toggle:hover {
+  border-color: rgba(255, 220, 160, 0.75);
+}
+
+.debug-overlay__panel {
+  pointer-events: auto;
+  max-width: min(96vw, 22rem);
+  max-height: min(70vh, 26rem);
+  overflow: auto;
+  padding: 0.35rem 0.45rem;
+  border-radius: 0.35rem;
+  background: rgba(8, 10, 18, 0.92);
+  border: 1px solid rgba(140, 160, 200, 0.35);
+  color: #dbe4f5;
+}
+
+.debug-overlay__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.debug-overlay__table th {
+  text-align: left;
+  font-weight: 500;
+  color: #9aa8c4;
+  padding: 0.15rem 0.5rem 0.15rem 0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.debug-overlay__table td {
+  padding: 0.15rem 0;
+  text-align: right;
+  word-break: break-all;
+}

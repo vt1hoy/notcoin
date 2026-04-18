@@ -1,0 +1,148 @@
+[
+    {
+      "id": "believers_a1",
+      "title": "CultOfNot Posts",
+      "description": "Aggressive meme propaganda",
+      "branch": "A",
+      "tier": 1,
+      "parentId": null,
+      "rewardNotcoin": 90,
+      "believersDelta": 2000,
+      "pricePenaltyPct": 0.02,
+      "trustPenalty": 2.5
+    },
+    {
+      "id": "believers_a2",
+      "title": "Meme Wave",
+      "description": "Viral content spreads fast",
+      "branch": "A",
+      "tier": 2,
+      "parentId": "believers_a1",
+      "rewardNotcoin": 150,
+      "believersDelta": 3500,
+      "pricePenaltyPct": 0.03,
+      "trustPenalty": 3.5
+    },
+    {
+      "id": "believers_a3",
+      "title": "Influencer Raid",
+      "description": "Paid hype from influencers",
+      "branch": "A",
+      "tier": 3,
+      "parentId": "believers_a2",
+      "rewardNotcoin": 220,
+      "believersDelta": 5000,
+      "pricePenaltyPct": 0.04,
+      "trustPenalty": 4.5
+    },
+    {
+      "id": "believers_a4",
+      "title": "Viral Storm",
+      "description": "Massive attention spike",
+      "branch": "A",
+      "tier": 4,
+      "parentId": "believers_a3",
+      "rewardNotcoin": 300,
+      "believersDelta": 7000,
+      "pricePenaltyPct": 0.05,
+      "trustPenalty": 6
+    },
+  
+    {
+      "id": "believers_b1",
+      "title": "Chat Raids",
+      "description": "Communities push narrative",
+      "branch": "B",
+      "tier": 1,
+      "parentId": null,
+      "rewardNotcoin": 80,
+      "believersDelta": 1800,
+      "pricePenaltyPct": 0.018,
+      "trustPenalty": 2
+    },
+    {
+      "id": "believers_b2",
+      "title": "Tokyo Not Meetup",
+      "description": "Offline hype events",
+      "branch": "B",
+      "tier": 2,
+      "parentId": "believers_b1",
+      "rewardNotcoin": 140,
+      "believersDelta": 3200,
+      "pricePenaltyPct": 0.028,
+      "trustPenalty": 3
+    },
+    {
+      "id": "believers_b3",
+      "title": "AMA Circuit",
+      "description": "Voice hype cycles",
+      "branch": "B",
+      "tier": 3,
+      "parentId": "believers_b2",
+      "rewardNotcoin": 200,
+      "believersDelta": 4700,
+      "pricePenaltyPct": 0.035,
+      "trustPenalty": 4
+    },
+    {
+      "id": "believers_b4",
+      "title": "Global Fren Nights",
+      "description": "Mass coordinated hype",
+      "branch": "B",
+      "tier": 4,
+      "parentId": "believers_b3",
+      "rewardNotcoin": 280,
+      "believersDelta": 6500,
+      "pricePenaltyPct": 0.05,
+      "trustPenalty": 5.5
+    },
+  
+    {
+      "id": "believers_c1",
+      "title": "Sticker Packs",
+      "description": "Spread identity through chats",
+      "branch": "C",
+      "tier": 1,
+      "parentId": null,
+      "rewardNotcoin": 70,
+      "believersDelta": 1600,
+      "pricePenaltyPct": 0.015,
+      "trustPenalty": 1.8
+    },
+    {
+      "id": "believers_c2",
+      "title": "Profile Badges",
+      "description": "Signal belonging",
+      "branch": "C",
+      "tier": 2,
+      "parentId": "believers_c1",
+      "rewardNotcoin": 130,
+      "believersDelta": 3000,
+      "pricePenaltyPct": 0.025,
+      "trustPenalty": 2.8
+    },
+    {
+      "id": "believers_c3",
+      "title": "Local Crews",
+      "description": "Regional communities grow",
+      "branch": "C",
+      "tier": 3,
+      "parentId": "believers_c2",
+      "rewardNotcoin": 190,
+      "believersDelta": 4500,
+      "pricePenaltyPct": 0.035,
+      "trustPenalty": 3.8
+    },
+    {
+      "id": "believers_c4",
+      "title": "Notcoin Lifestyle",
+      "description": "Culture becomes identity",
+      "branch": "C",
+      "tier": 4,
+      "parentId": "believers_c3",
+      "rewardNotcoin": 260,
+      "believersDelta": 6200,
+      "pricePenaltyPct": 0.045,
+      "trustPenalty": 5
+    }
+  ]
