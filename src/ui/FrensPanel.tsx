@@ -37,9 +37,7 @@ export function FrensPanel({ onClose }: Props) {
               type="button"
               role="tab"
               aria-selected={tab === t.id}
-              className={`frens-panel__tab${
-                tab === t.id ? ' frens-panel__tab--active' : ''
-              }`}
+              className={`frens-panel__tab${tab === t.id ? ' is-selected' : ''}`}
               onClick={() => setTab(t.id)}
             >
               {t.label}

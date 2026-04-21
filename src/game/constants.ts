@@ -9,7 +9,7 @@ export const GAME_END_MS = Date.UTC(2026, 5, 17, 0, 0, 0, 0)
 
 export const TOTAL_GAME_MS = GAME_END_MS - GAME_START_MS
 
-export const INITIAL_PRICE = 0.1
+export const INITIAL_PRICE = 0.01
 export const PRICE_FLOOR = 0.0001
 
 /** Fixed supply for market cap display (price × supply). */
@@ -39,8 +39,8 @@ export const FLUFF_TICKER_MAX_MS = 30_000
 export const POPUP_SPAWN_MIN_MS = 8_000
 export const POPUP_SPAWN_MAX_MS = 14_000
 
-/** Clamp per-event price move (green/red events can reach ±70%). */
-export const PRICE_PCT_CLAMP = 0.7
+/** Clamp per-event price move (effective hard clamps still apply per category). */
+export const PRICE_PCT_CLAMP = 0.9
 
 /** Matches `public/maps/world.svg` (Simplemaps world). */
 export const MAP_VIEWBOX = { width: 2000, height: 857 } as const
@@ -89,7 +89,7 @@ export const GLOBAL_INFECTION_CLUSTER_CAP = 28
 export const PLAYER_SEED_GROWTH_PER_S = 0.028
 
 /** How fast mature seeds push infection into their `countryKey` (per second, scaled by growth & room). */
-export const PLAYER_SEED_COUNTRY_PUSH_PER_S = 0.0075
+export const PLAYER_SEED_COUNTRY_PUSH_PER_S = 0.0062
 
 /** One-shot bump to country level when a popup is tapped (starts the slow country tint). */
-export const PLAYER_SEED_INITIAL_COUNTRY_BUMP = 0.006
+export const PLAYER_SEED_INITIAL_COUNTRY_BUMP = 0.014

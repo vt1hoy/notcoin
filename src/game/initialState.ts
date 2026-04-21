@@ -13,6 +13,7 @@ import type {
   InfectionClustersByCountry,
   InfectionSeed,
   MapPopup,
+  RecentPopupSpawn,
   TickerLine,
 } from './types'
 
@@ -41,12 +42,17 @@ export type GameStateSnapshot = {
     | 'builders'
     | 'frens'
   activeSidePanel: null | 'world'
-  musicEnabled: boolean
   popups: MapPopup[]
+  /** Recent Notcoin popup spawn positions + countries (spatial + geographic variety). */
+  recentPopupSpawns: RecentPopupSpawn[]
   nextPopupAtSessionMs: number
   nextMainEventAtSessionMs: number
   nextFluffTickerAtSessionMs: number
   tickerLines: TickerLine[]
+  /** Main-news category counts for quota nudging (per session). */
+  mainEventCategoryCounts: { negative: number; positive: number; neutral: number }
+  /** Number of main news events already fired this session. */
+  mainEventsSeen: number
   /** Ephemeral UI toast; cleared on restart. */
   feedbackLine: string | null
   /** Per-country infection 0–1 (keys = SVG logical ids / names / classes). */
@@ -70,10 +76,10 @@ export function createInitialState(): GameStateSnapshot {
     priceMin: INITIAL_PRICE,
     priceMax: INITIAL_PRICE,
     notcoinBalance: 50,
-    believers: 50_000,
-    holders: 20_000,
-    builders: 2000,
-    trust: 58,
+    believers: 80_000,
+    holders: 12_000,
+    builders: 1200,
+    trust: 40,
     productsLaunched: 0,
     upgradeLevels: {},
     globalCostMultiplier: 1,
@@ -83,8 +89,8 @@ export function createInitialState(): GameStateSnapshot {
     settingsOpen: false,
     activeMainPanel: null,
     activeSidePanel: null,
-    musicEnabled: true,
     popups: [],
+    recentPopupSpawns: [],
     nextPopupAtSessionMs: randomIntInclusive(
       POPUP_SPAWN_MIN_MS,
       POPUP_SPAWN_MAX_MS,
@@ -98,6 +104,8 @@ export function createInitialState(): GameStateSnapshot {
       FLUFF_TICKER_MAX_MS,
     ),
     tickerLines: [],
+    mainEventCategoryCounts: { negative: 0, positive: 0, neutral: 0 },
+    mainEventsSeen: 0,
     feedbackLine: null,
     countryInfection: {},
     infectionClusters: {},

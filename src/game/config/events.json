@@ -1,182 +1,203 @@
 {
-  "world": [
+  "mainEvents": [
     {
-      "id": "w_tariff_red",
-      "label": "Tariff headlines hit risk assets; desks de-risk into the weekend",
-      "type": "negative",
-      "pricePct": -0.22,
-      "trustDelta": -2,
-      "holdersDelta": -600,
-      "weight": 2
-    },
-    {
-      "id": "w_mideast_red",
-      "label": "Mideast tensions flare; oil jumps and crypto correlation turns ugly",
-      "type": "negative",
-      "pricePct": -0.18,
-      "trustDelta": -3,
-      "weight": 2
-    },
-    {
-      "id": "w_europe_red",
-      "label": "Eastern Europe escalation fears dominate macro channels",
-      "type": "negative",
-      "pricePct": -0.16,
-      "trustDelta": -2,
-      "believersDelta": -350,
-      "weight": 1
-    },
-    {
-      "id": "w_etf_green",
-      "label": "Spot crypto ETF flows turn positive; allocators nibble memecoins again",
-      "type": "positive",
-      "pricePct": 0.2,
-      "trustDelta": 3,
+      "id": "w_etf_inflows_summer",
+      "label": "Spot Bitcoin ETFs report steady inflows as institutional demand builds",
+      "category": "positive",
       "holdersDelta": 1400,
       "weight": 2
     },
     {
-      "id": "w_telegram_green",
-      "label": "Telegram ecosystem report: mini-apps and taps drive fresh user highs",
-      "type": "positive",
-      "pricePct": 0.16,
-      "trustDelta": 2,
+      "id": "w_eth_etf_approval",
+      "label": "US regulators approve spot Ethereum ETFs, expanding institutional access",
+      "category": "positive",
+      "holdersDelta": 1600,
+      "weight": 2
+    },
+    {
+      "id": "w_telegram_growth",
+      "label": "Telegram reports surge in mini-app usage driven by Web3 integrations",
+      "category": "positive",
       "buildersDelta": 120,
       "weight": 2
     },
     {
-      "id": "w_outage_red",
-      "label": "Major exchange flags degraded matching; withdrawals queue for hours",
-      "type": "negative",
-      "pricePct": -0.28,
-      "trustDelta": -4,
-      "holdersDelta": -900,
-      "weight": 1
+      "id": "w_ton_activity",
+      "label": "TON network activity hits new highs as user wallets and transactions climb",
+      "category": "positive",
+      "buildersDelta": 140,
+      "weight": 2
     },
     {
-      "id": "w_whale_green",
-      "label": "Whale wallets quietly stack clips; on-chain trackers light up",
-      "type": "positive",
-      "pricePct": 0.12,
-      "trustDelta": 1,
+      "id": "w_whale_accumulation",
+      "label": "Large wallets accumulate across memecoins and mid-cap tokens",
+      "category": "positive",
       "holdersDelta": 1100,
       "weight": 1
     },
     {
-      "id": "w_listing_green",
-      "label": "New venue lists spot Notcoin; liquidity routers show two-way depth",
-      "type": "positive",
-      "pricePct": 0.22,
-      "trustDelta": 3,
+      "id": "w_exchange_listing_wave",
+      "label": "Major exchanges expand listings for emerging tokens amid retail demand",
+      "category": "positive",
       "holdersDelta": 1200,
       "weight": 1
     },
     {
-      "id": "w_policy_gray",
-      "label": "Regulators publish neutral guidance on memecoin disclosures",
-      "type": "neutral",
-      "pricePct": 0,
-      "trustDelta": 1,
+      "id": "w_layer2_growth",
+      "label": "Layer 2 adoption accelerates as fees drop and activity migrates on-chain",
+      "category": "positive",
+      "buildersDelta": 100,
       "weight": 1
     },
     {
-      "id": "w_fud_red",
-      "label": "Anonymous thread questions user metrics; mods label it unverified",
-      "type": "negative",
-      "pricePct": -0.12,
-      "trustDelta": -2,
-      "believersDelta": -400,
+      "id": "w_defi_recovery",
+      "label": "DeFi total value locked rebounds as yields stabilize across protocols",
+      "category": "positive",
+      "holdersDelta": 900,
       "weight": 1
     },
     {
-      "id": "w_tech_green",
-      "label": "Core network upgrade ships early; builders post green dashboards",
-      "type": "positive",
-      "pricePct": 0.18,
-      "buildersDelta": 150,
-      "trustDelta": 2,
+      "id": "w_crypto_payments",
+      "label": "More merchants integrate crypto payments, expanding real-world usage",
+      "category": "positive",
+      "buildersDelta": 90,
       "weight": 1
     },
     {
-      "id": "w_liquidity_red",
-      "label": "Market makers widen spreads after a volatility spike",
-      "type": "negative",
-      "pricePct": -0.2,
-      "trustDelta": -1,
+      "id": "w_market_momentum",
+      "label": "Crypto market momentum returns as volumes rise across major assets",
+      "category": "positive",
+      "holdersDelta": 1000,
+      "weight": 2
+    },
+    {
+      "id": "w_macro_wait",
+      "label": "Markets pause ahead of macro data; crypto trades in a narrow range",
+      "category": "neutral",
+      "weight": 2
+    },
+    {
+      "id": "w_sideways_flow",
+      "label": "Sideways trading continues as volumes normalize across major pairs",
+      "category": "neutral",
+      "weight": 2
+    },
+    {
+      "id": "w_mixed_signals",
+      "label": "Mixed signals from equities and crypto leave traders without direction",
+      "category": "neutral",
       "weight": 1
     },
     {
-      "id": "w_comm_gray",
-      "label": "Community vote ends with no change to emission schedule",
-      "type": "neutral",
-      "pricePct": 0,
+      "id": "w_low_volatility",
+      "label": "Volatility drops across crypto markets; options desks report quiet flows",
+      "category": "neutral",
+      "weight": 1
+    },
+    {
+      "id": "w_rotation",
+      "label": "Capital rotates between sectors without clear net inflows",
+      "category": "neutral",
+      "weight": 1
+    },
+    {
+      "id": "w_stable_flows",
+      "label": "Stablecoin flows remain balanced; no directional bias detected",
+      "category": "neutral",
+      "weight": 1
+    },
+    {
+      "id": "w_minor_upgrade",
+      "label": "Protocol update ships without incident; no immediate market reaction",
+      "category": "neutral",
+      "weight": 1
+    },
+    {
+      "id": "w_exchange_maintenance",
+      "label": "Exchange schedules routine maintenance; trading unaffected overall",
+      "category": "neutral",
+      "weight": 1
+    },
+    {
+      "id": "w_sentiment_flat",
+      "label": "Market sentiment remains neutral as traders wait for catalysts",
+      "category": "neutral",
+      "weight": 2
+    },
+    {
+      "id": "w_retail_cooling",
+      "label": "Retail activity cools after recent spikes; engagement stabilizes",
+      "category": "neutral",
+      "weight": 1
+    },
+    {
+      "id": "w_macro_selloff",
+      "label": "Macro sell-off hits risk assets; crypto follows equities lower",
+      "category": "negative",
+      "holdersDelta": -1200,
+      "weight": 2
+    },
+    {
+      "id": "w_etf_outflows",
+      "label": "Spot crypto ETFs see outflows as institutions reduce exposure",
+      "category": "negative",
+      "holdersDelta": -1400,
+      "weight": 2
+    },
+    {
+      "id": "w_exchange_issue",
+      "label": "Major exchange reports outages and withdrawal delays",
+      "category": "negative",
+      "holdersDelta": -900,
+      "weight": 1
+    },
+    {
+      "id": "w_whale_dump",
+      "label": "Large wallets begin distributing; on-chain alerts trigger market anxiety",
+      "category": "negative",
+      "holdersDelta": -1100,
+      "weight": 1
+    },
+    {
+      "id": "w_regulatory_pressure",
+      "label": "Regulators signal tighter oversight on crypto trading platforms",
+      "category": "negative",
+      "weight": 1
+    },
+    {
+      "id": "w_liquidity_dry",
+      "label": "Liquidity thins across order books; spreads widen under pressure",
+      "category": "negative",
+      "weight": 1
+    },
+    {
+      "id": "w_fud_wave",
+      "label": "Viral threads question sustainability of token growth; sentiment weakens",
+      "category": "negative",
+      "believersDelta": -500,
+      "weight": 1
+    },
+    {
+      "id": "w_hack_news",
+      "label": "Security breach at major protocol raises concerns across the market",
+      "category": "negative",
+      "holdersDelta": -1000,
+      "weight": 1
+    },
+    {
+      "id": "w_mining_pressure",
+      "label": "Mining-related selling increases supply pressure on the market",
+      "category": "negative",
+      "weight": 1
+    },
+    {
+      "id": "w_telegram_slowdown",
+      "label": "Telegram mini-app activity slows; engagement drops from recent highs",
+      "category": "negative",
+      "buildersDelta": -120,
       "weight": 1
     }
-  ],
-  "internal": [
-    {
-      "id": "i_ops_neutral",
-      "label": "Ops: routine maintenance window; no user funds at risk",
-      "type": "neutral",
-      "pricePct": 0,
-      "weight": 9
-    },
-    {
-      "id": "i_comms_green",
-      "label": "Comms ships transparency pack: flows, fees, and runway in one page",
-      "type": "positive",
-      "pricePct": 0.1,
-      "trustDelta": 2,
-      "weight": 7
-    },
-    {
-      "id": "i_audit_red",
-      "label": "Internal audit: tighten vendor keys and session rotation",
-      "type": "negative",
-      "pricePct": -0.15,
-      "trustDelta": -3,
-      "weight": 8
-    },
-    {
-      "id": "i_hr_gray",
-      "label": "People: leadership offsite; no roadmap drops this week",
-      "type": "neutral",
-      "pricePct": 0,
-      "weight": 6
-    },
-    {
-      "id": "i_treasury_green",
-      "label": "Treasury: reserves above policy floor; stress sims look boring",
-      "type": "positive",
-      "pricePct": 0.08,
-      "trustDelta": 1,
-      "weight": 6
-    },
-    {
-      "id": "i_legal_red",
-      "label": "Legal: inbound questions on legacy token sales; counsel engaged",
-      "type": "negative",
-      "pricePct": -0.28,
-      "trustDelta": -5,
-      "weight": 5
-    },
-    {
-      "id": "i_miniapp_green",
-      "label": "Product: mini-app shell passes review; bot menu link ready for QA",
-      "type": "positive",
-      "pricePct": 0.09,
-      "trustDelta": 2,
-      "buildersDelta": 80,
-      "weight": 6
-    },
-    {
-      "id": "i_security_neutral",
-      "label": "Security: phishing wave reported; official channels only",
-      "type": "neutral",
-      "pricePct": 0,
-      "trustDelta": -1,
-      "weight": 5
-    }
+
   ],
   "fluffTicker": [
     "Macro desks: tariffs and energy prints steal the morning tape.",

@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { formatGameDate } from '../game/dates'
 import { useGameStore } from '../store/gameStore'
 import { formatNotcoin } from './format'
-import { NewsTicker } from './NewsTicker'
 import './TopBar.css'
 
 export function TopBar() {
@@ -29,18 +28,17 @@ export function TopBar() {
       >
         ⚙
       </button>
-      <NewsTicker />
       <div className="top-bar__hud" aria-label="Wallet and pace">
-        <div className="top-bar__wallet" title="Notcoin balance (wallet)">
+        <div className="top-bar__wallet" title="NOT balance (wallet)">
           <span className="top-bar__wallet-k">Balance</span>
           <span className="top-bar__wallet-v">
             {formatNotcoin(notcoinBalance)}
-            <span className="top-bar__wallet-nc"> NC</span>
+            <span className="top-bar__wallet-unit"> NOT</span>
           </span>
         </div>
         <div className="top-bar__meta">
-          <span className="top-bar__meta-item" title="Passive Notcoin per second">
-            +{formatNotcoin(passivePerSecond)}/s
+          <span className="top-bar__meta-item" title="Passive NOT per second">
+            +{formatNotcoin(passivePerSecond)} NOT/s
           </span>
           <span className="top-bar__meta-sep" aria-hidden>
             ·

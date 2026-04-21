@@ -39,13 +39,18 @@
   fill: #0b0f1a;
   stroke: rgba(255, 255, 255, 0.08);
   stroke-width: 0.5;
-  cursor: pointer;
   transition: fill 0.12s ease, stroke 0.12s ease;
+  outline: none;
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  user-select: none;
+  cursor: default;
 }
 
-.map-country--hover {
-  fill: #121a2e;
-  stroke: rgba(255, 255, 255, 0.22);
+.map-country:focus,
+.map-country:focus-visible {
+  outline: none;
 }
 
 .map-infection-tint {
@@ -57,24 +62,195 @@
   pointer-events: none;
 }
 
+.map-infection-links {
+  pointer-events: none;
+}
+
+.map-infection-link {
+  fill: none;
+  stroke: rgba(255, 88, 80, 0.32);
+  stroke-width: 1.05px;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-dasharray: 3 11;
+  opacity: 0.28;
+  animation: mapInfectionLinkDash 5s linear infinite;
+}
+
+@keyframes mapInfectionLinkDash {
+  to {
+    stroke-dashoffset: -56;
+  }
+}
+
+.map-infection-cluster__drift {
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.map-infection-cluster__heat,
+.map-infection-cluster__glow-disc,
+.map-infection-cluster__core {
+  pointer-events: none;
+}
+
+.map-infection-cluster__pulse-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+  animation-name: mapInfectionClusterPulse;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  animation-duration: var(--pulse-dur, 2.85s);
+  animation-delay: calc(var(--delay-base, 0s) + var(--ring-idx, 0) * -0.92s);
+}
+
+.map-infection-cluster__pulse-ring--0 {
+  --ring-idx: 0;
+}
+
+.map-infection-cluster__pulse-ring--1 {
+  --ring-idx: 1;
+}
+
+.map-infection-cluster__pulse-ring--2 {
+  --ring-idx: 2;
+}
+
+@keyframes mapInfectionClusterPulse {
+  0% {
+    transform: scale(0.2);
+    stroke-opacity: 0.62;
+  }
+  100% {
+    transform: scale(3.85);
+    stroke-opacity: 0;
+  }
+}
+
+@keyframes mapInfectionClusterDrift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(1.4px, -1px);
+  }
+  50% {
+    transform: translate(-1.2px, 1.1px);
+  }
+  75% {
+    transform: translate(1px, 1.2px);
+  }
+}
+
 .map-infection-dot {
   fill: #ff5555;
-  opacity: 0.82;
 }
 
 .map-infection-seed {
   pointer-events: none;
 }
 
+.map-infection-seed__drift {
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.map-infection-seed__heat {
+  pointer-events: none;
+}
+
 .map-infection-seed__glow {
   fill: #ff3b3b;
-  filter: blur(3px);
+  filter: blur(2px);
+}
+
+.map-infection-seed__pulse-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+  animation-name: mapInfectionSeedPulse;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  animation-duration: var(--seed-pulse-dur, 2.05s);
+  animation-delay: calc(var(--seed-delay-base, 0s) + var(--ring-idx, 0) * -0.68s);
+}
+
+.map-infection-seed__pulse-ring--0 {
+  --ring-idx: 0;
+}
+
+.map-infection-seed__pulse-ring--1 {
+  --ring-idx: 1;
+}
+
+.map-infection-seed__pulse-ring--2 {
+  --ring-idx: 2;
+}
+
+@keyframes mapInfectionSeedPulse {
+  0% {
+    transform: scale(0.18);
+    stroke-opacity: 0.58;
+  }
+  100% {
+    transform: scale(3.15);
+    stroke-opacity: 0;
+  }
+}
+
+@keyframes mapInfectionSeedDrift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(0.9px, -0.75px);
+  }
+  66% {
+    transform: translate(-0.85px, 0.8px);
+  }
 }
 
 .map-infection-seed__core {
   fill: #ff2222;
   stroke: rgba(255, 200, 200, 0.85);
   stroke-width: 0.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-infection-link {
+    animation: none;
+    stroke-dasharray: none;
+    opacity: 0.22;
+  }
+
+  .map-infection-cluster__pulse-ring,
+  .map-infection-seed__pulse-ring {
+    animation: none;
+    stroke-opacity: 0;
+    transform: none;
+    display: none;
+  }
+
+  .map-infection-cluster__drift,
+  .map-infection-seed__drift {
+    animation: none !important;
+    transform: none;
+  }
+
+  .map-popup__enter {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+.map-popup__enter {
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .map-popup__hit {

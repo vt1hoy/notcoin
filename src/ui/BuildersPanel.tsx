@@ -28,35 +28,83 @@ type CardProps = {
   unlocked: boolean
   purchased: boolean
   cost: number
+  selected: boolean
+  canAfford: boolean
+  onUpgrade: () => void
   onSelect: () => void
 }
 
-function UpgradeCard({ def, unlocked, purchased, cost, onSelect }: CardProps) {
+function UpgradeCard({
+  def,
+  unlocked,
+  purchased,
+  cost,
+  selected,
+  canAfford,
+  onUpgrade,
+  onSelect,
+}: CardProps) {
   let state: 'locked' | 'purchased' | 'available' = 'available'
   if (purchased) state = 'purchased'
   else if (!unlocked) state = 'locked'
 
   return (
-    <button
-      type="button"
-      className={`builder-card builder-card--${state}`}
-      onClick={onSelect}
-      disabled={state === 'purchased'}
+    <div
+      className={`builder-card builder-card--${state}${selected ? ' is-selected' : ''}`}
+      role="group"
+      aria-label={`${def.title} upgrade`}
     >
-      <div className="builder-card__tier">{tierLabel(def)}</div>
-      <div className="builder-card__title">{def.title}</div>
-      <div className="builder-card__meta">
-        {state === 'locked' && <span className="builder-card__badge">Locked</span>}
-        {state === 'purchased' && (
-          <span className="builder-card__badge builder-card__badge--ok">Purchased</span>
-        )}
-        {state === 'available' && (
-          <span className="builder-card__badge builder-card__badge--cost">
-            {formatNotcoin(cost)} NC
-          </span>
-        )}
+      <button
+        type="button"
+        className="builder-card__hit"
+        onClick={onSelect}
+        aria-label={`Open details for ${def.title}`}
+      >
+        <div className="builder-card__tier">{tierLabel(def)}</div>
+        <div className="builder-card__title">{def.title}</div>
+        <div className="builder-card__meta">
+          {state === 'locked' && <span className="builder-card__badge">Locked</span>}
+          {state === 'purchased' && (
+            <span className="builder-card__badge builder-card__badge--ok">
+              Purchased
+            </span>
+          )}
+          {state === 'available' && (
+            <>
+              <span className="builder-card__badge builder-card__badge--cost">
+                {formatNotcoin(cost)} NOT
+              </span>
+              <span className="builder-card__badge builder-card__badge--passive">
+                +{formatNotcoin(def.passivePerSecondDelta)} NOT/s
+              </span>
+              <span className="builder-card__badge builder-card__badge--penalty">
+                −{(def.pricePenaltyPct * 100).toFixed(1)}%
+              </span>
+            </>
+          )}
+        </div>
+      </button>
+
+      <div className="builder-card__actions">
+        <button
+          type="button"
+          className="builder-card__upgrade"
+          disabled={state !== 'available' || !canAfford}
+          onClick={(e) => {
+            e.stopPropagation()
+            onUpgrade()
+          }}
+        >
+          {state === 'purchased'
+            ? 'Purchased'
+            : state === 'locked'
+              ? 'Locked'
+              : !canAfford
+                ? 'Not enough NOT'
+                : 'Upgrade'}
+        </button>
       </div>
-    </button>
+    </div>
   )
 }
 
@@ -103,6 +151,7 @@ export function BuildersPanelContent({ onClose }: { onClose: () => void }) {
                     globalCostMultiplier,
                   ),
                 )
+                const canAfford = notcoinBalance >= cost
                 return (
                   <UpgradeCard
                     key={def.id}
@@ -110,6 +159,9 @@ export function BuildersPanelContent({ onClose }: { onClose: () => void }) {
                     unlocked={unlocked}
                     purchased={purchased}
                     cost={cost}
+                    selected={selectedId === def.id}
+                    canAfford={canAfford}
+                    onUpgrade={() => purchaseBuilderUpgrade(def.id)}
                     onSelect={() => setSelectedId(def.id)}
                   />
                 )
@@ -139,7 +191,7 @@ export function BuildersPanelContent({ onClose }: { onClose: () => void }) {
           <dl className="builders-detail__stats">
             <div>
               <dt>Cost</dt>
-              <dd>{formatNotcoin(selectedCost)} Notcoin</dd>
+              <dd>{formatNotcoin(selectedCost)} NOT</dd>
             </div>
             <div>
               <dt>Builders</dt>
@@ -147,7 +199,7 @@ export function BuildersPanelContent({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <dt>Passive</dt>
-              <dd>+{formatNotcoin(selected.passivePerSecondDelta)}/s</dd>
+              <dd>+{formatNotcoin(selected.passivePerSecondDelta)} NOT/s</dd>
             </div>
             <div>
               <dt>Token price</dt>
@@ -181,7 +233,7 @@ export function BuildersPanelContent({ onClose }: { onClose: () => void }) {
                 : !isBuilderUpgradeUnlocked(selected, upgradeLevels)
                   ? 'Locked'
                   : !canAffordSelected
-                    ? 'Not enough Notcoin'
+                    ? 'Not enough NOT'
                     : 'Upgrade'}
             </button>
             <button type="button" className="builders-detail__ghost" onClick={onClose}>

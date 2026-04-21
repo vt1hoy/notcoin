@@ -4,12 +4,11 @@
  */
 import believersData from '../config/believers.json'
 import {
-  BELIEVERS_MAX_PRICE_PENALTY_HIT,
   BELIEVERS_STACK_INDEX_CAP,
-  BELIEVERS_STACK_PRICE_FACTOR,
   BELIEVERS_STACK_TRUST_FACTOR,
   BELIEVERS_STACK_WINDOW_MS,
 } from '../constants'
+import { priceDifficulty } from '../formulas'
 
 export type BelieverBranch = 'A' | 'B' | 'C'
 
@@ -22,10 +21,9 @@ export type BelieverUpgradeDef = {
   branch: BelieverBranch
   tier: BelieverUpgradeTier
   parentId: string | null
-  rewardNotcoin: number
+  baseCost: number
   believersDelta: number
-  /** Fractional price drop: `price *= (1 - pricePenaltyPctEffective)`. */
-  pricePenaltyPct: number
+  passivePerSecondDelta: number
   /** Trust points removed (before stacking). */
   trustPenalty: number
 }
@@ -63,6 +61,14 @@ export function isBelieverUpgradePurchased(
   return (upgradeLevels[def.id] ?? 0) >= 1
 }
 
+export function believerUpgradeEffectiveCost(
+  def: BelieverUpgradeDef,
+  price: number,
+  globalCostMultiplier: number,
+): number {
+  return def.baseCost * globalCostMultiplier * priceDifficulty(price)
+}
+
 export function nextBelieversStackState(
   sessionMapActiveMs: number,
   lastBelieversUpgradeAtSessionMs: number | null,
@@ -83,15 +89,9 @@ export function nextBelieversStackState(
 export function effectiveBelieversPenalties(
   def: BelieverUpgradeDef,
   stackIndex: number,
-): { pricePenaltyPctEffective: number; trustPenaltyEffective: number } {
+): { trustPenaltyEffective: number } {
   const idx = Math.min(BELIEVERS_STACK_INDEX_CAP, stackIndex)
   const trustPenaltyEffective =
     def.trustPenalty * (1 + BELIEVERS_STACK_TRUST_FACTOR * idx)
-  const rawPricePenalty =
-    def.pricePenaltyPct * (1 + BELIEVERS_STACK_PRICE_FACTOR * idx)
-  const pricePenaltyPctEffective = Math.min(
-    BELIEVERS_MAX_PRICE_PENALTY_HIT,
-    rawPricePenalty,
-  )
-  return { pricePenaltyPctEffective, trustPenaltyEffective }
+  return { trustPenaltyEffective }
 }

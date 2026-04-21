@@ -98,6 +98,7 @@
   font-size: 14px;
   line-height: 1.55;
   color: #c7d0e0;
+  white-space: pre-line;
 }
 
 .final-report__grid {

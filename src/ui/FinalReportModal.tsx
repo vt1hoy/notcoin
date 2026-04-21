@@ -8,6 +8,10 @@ import {
   BUILDER_UPGRADES,
   isBuilderUpgradePurchased,
 } from '../game/upgrades/builders'
+import {
+  HOLDER_UPGRADES,
+  isHolderUpgradePurchased,
+} from '../game/upgrades/holders'
 import { useGameStore } from '../store/gameStore'
 import {
   formatCompactUsd,
@@ -25,7 +29,6 @@ export function FinalReportModal() {
   const believers = useGameStore((s) => s.believers)
   const holders = useGameStore((s) => s.holders)
   const builders = useGameStore((s) => s.builders)
-  const productsLaunched = useGameStore((s) => s.productsLaunched)
   const upgradeLevels = useGameStore((s) => s.upgradeLevels)
   const restartRun = useGameStore((s) => s.restartRun)
 
@@ -39,8 +42,14 @@ export function FinalReportModal() {
         builders,
         trust,
         price,
+        purchasedHolderUpgrades: HOLDER_UPGRADES.filter((def) =>
+          isHolderUpgradePurchased(def, upgradeLevels),
+        ).length,
+        purchasedBuilderUpgrades: BUILDER_UPGRADES.filter((def) =>
+          isBuilderUpgradePurchased(def, upgradeLevels),
+        ).length,
       }),
-    [believers, holders, builders, trust, price],
+    [believers, holders, builders, trust, price, upgradeLevels],
   )
 
   const closingNarrative = useMemo(
@@ -54,6 +63,16 @@ export function FinalReportModal() {
         isBuilderUpgradePurchased(def, upgradeLevels),
       ),
     [upgradeLevels],
+  )
+
+  /** Sum of `productsLaunchedDelta` from purchased upgrades (authoritative for this report). */
+  const productsLaunchedFromBuilders = useMemo(
+    () =>
+      purchasedBuilders.reduce(
+        (sum, def) => sum + (def.productsLaunchedDelta ?? 0),
+        0,
+      ),
+    [purchasedBuilders],
   )
 
   return (
@@ -80,7 +99,7 @@ export function FinalReportModal() {
           <h3 className="final-report__h">Core metrics</h3>
           <dl className="final-report__grid">
             <div>
-              <dt>Final Notcoin price</dt>
+              <dt>Final NOT price</dt>
               <dd>{formatUsd(price)}</dd>
             </div>
             <div>
@@ -134,7 +153,7 @@ export function FinalReportModal() {
             </div>
             <div>
               <dt>Products launched</dt>
-              <dd>{formatInt(productsLaunched)}</dd>
+              <dd>{formatInt(productsLaunchedFromBuilders)}</dd>
             </div>
           </dl>
         </section>

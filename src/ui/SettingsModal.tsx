@@ -1,11 +1,14 @@
 import { useGameStore } from '../store/gameStore'
 import './SettingsModal.css'
 
-export function SettingsModal() {
+type Props = {
+  musicEnabled: boolean
+  onMusicEnabledChange: (enabled: boolean) => void
+}
+
+export function SettingsModal({ musicEnabled, onMusicEnabledChange }: Props) {
   const open = useGameStore((s) => s.settingsOpen)
-  const musicEnabled = useGameStore((s) => s.musicEnabled)
   const closeSettings = useGameStore((s) => s.closeSettings)
-  const toggleMusic = useGameStore((s) => s.toggleMusic)
   const restartRun = useGameStore((s) => s.restartRun)
 
   if (!open) return null
@@ -36,13 +39,9 @@ export function SettingsModal() {
             <input
               type="checkbox"
               checked={musicEnabled}
-              onChange={() => toggleMusic()}
+              onChange={(e) => onMusicEnabledChange(e.target.checked)}
             />
           </label>
-          <p className="settings-hint">
-            Audio playback is not wired in this MVP; this toggle is stored for
-            later.
-          </p>
           <button
             type="button"
             className="danger-button"

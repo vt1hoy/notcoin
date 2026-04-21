@@ -54,6 +54,7 @@
   font-size: 13px;
   line-height: 1.5;
   color: #c7d0e0;
+  white-space: pre-line;
 }
 
 @media (max-width: 520px) {

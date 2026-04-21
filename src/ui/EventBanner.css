@@ -66,29 +66,32 @@
 }
 
 .event-banner__title {
-  margin: 0 0 8px;
-  font-size: 1.15rem;
+  margin: 0 0 10px;
+  font-size: 0;
+  height: 0;
+  overflow: hidden;
   font-weight: 700;
   line-height: 1.25;
   color: #f0f4ff;
 }
 
-.event-banner__impact {
-  margin: 0 0 10px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+.event-banner__pct {
+  margin: 2px 0 10px;
+  font-size: 2.1rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
-.event-banner__impact--green {
+.event-banner__pct--green {
   color: #7af0a8;
 }
 
-.event-banner__impact--red {
+.event-banner__pct--red {
   color: #ff9b9b;
 }
 
-.event-banner__impact--gray {
+.event-banner__pct--gray {
   color: #b8c4df;
 }
 

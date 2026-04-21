@@ -32,35 +32,80 @@ type CardProps = {
   unlocked: boolean
   purchased: boolean
   cost: number
+  selected: boolean
+  canAfford: boolean
+  onUpgrade: () => void
   onSelect: () => void
 }
 
-function UpgradeCard({ def, unlocked, purchased, cost, onSelect }: CardProps) {
+function UpgradeCard({
+  def,
+  unlocked,
+  purchased,
+  cost,
+  selected,
+  canAfford,
+  onUpgrade,
+  onSelect,
+}: CardProps) {
   let state: 'locked' | 'purchased' | 'available' = 'available'
   if (purchased) state = 'purchased'
   else if (!unlocked) state = 'locked'
 
   return (
-    <button
-      type="button"
-      className={`holder-card holder-card--${state}`}
-      onClick={onSelect}
-      disabled={state === 'purchased'}
+    <div
+      className={`holder-card holder-card--${state}${selected ? ' is-selected' : ''}`}
+      role="group"
+      aria-label={`${def.title} upgrade`}
     >
-      <div className="holder-card__tier">{tierLabel(def)}</div>
-      <div className="holder-card__title">{def.title}</div>
-      <div className="holder-card__meta">
-        {state === 'locked' && <span className="holder-card__badge">Locked</span>}
-        {state === 'purchased' && (
-          <span className="holder-card__badge holder-card__badge--ok">Purchased</span>
-        )}
-        {state === 'available' && (
-          <span className="holder-card__badge holder-card__badge--cost">
-            {formatNotcoin(cost)} NC
-          </span>
-        )}
+      <button
+        type="button"
+        className="holder-card__hit"
+        onClick={onSelect}
+        aria-label={`Open details for ${def.title}`}
+      >
+        <div className="holder-card__tier">{tierLabel(def)}</div>
+        <div className="holder-card__title">{def.title}</div>
+        <div className="holder-card__meta">
+          {state === 'locked' && <span className="holder-card__badge">Locked</span>}
+          {state === 'purchased' && (
+            <span className="holder-card__badge holder-card__badge--ok">
+              Purchased
+            </span>
+          )}
+          {state === 'available' && (
+            <>
+              <span className="holder-card__badge holder-card__badge--cost">
+                {formatNotcoin(cost)} NOT
+              </span>
+              <span className="holder-card__badge holder-card__badge--trust">
+                +{(def.trustDelta ?? 0).toFixed(2)}%
+              </span>
+            </>
+          )}
+        </div>
+      </button>
+
+      <div className="holder-card__actions">
+        <button
+          type="button"
+          className="holder-card__upgrade"
+          disabled={state !== 'available' || !canAfford}
+          onClick={(e) => {
+            e.stopPropagation()
+            onUpgrade()
+          }}
+        >
+          {state === 'purchased'
+            ? 'Purchased'
+            : state === 'locked'
+              ? 'Locked'
+              : !canAfford
+                ? 'Not enough NOT'
+                : 'Upgrade'}
+        </button>
       </div>
-    </button>
+    </div>
   )
 }
 
@@ -114,6 +159,7 @@ export function HoldersPanelContent({ onClose }: { onClose: () => void }) {
                     globalCostMultiplier,
                   ),
                 )
+                const canAfford = notcoinBalance >= cost
                 return (
                   <UpgradeCard
                     key={def.id}
@@ -121,6 +167,9 @@ export function HoldersPanelContent({ onClose }: { onClose: () => void }) {
                     unlocked={unlocked}
                     purchased={purchased}
                     cost={cost}
+                    selected={selectedId === def.id}
+                    canAfford={canAfford}
+                    onUpgrade={() => purchaseHolderUpgrade(def.id)}
                     onSelect={() => setSelectedId(def.id)}
                   />
                 )
@@ -150,7 +199,7 @@ export function HoldersPanelContent({ onClose }: { onClose: () => void }) {
           <dl className="holders-detail__stats">
             <div>
               <dt>Cost</dt>
-              <dd>{formatNotcoin(selectedCost)} Notcoin</dd>
+              <dd>{formatNotcoin(selectedCost)} NOT</dd>
             </div>
             <div>
               <dt>Holders</dt>
@@ -184,7 +233,7 @@ export function HoldersPanelContent({ onClose }: { onClose: () => void }) {
                 : !isHolderUpgradeUnlocked(selected, upgradeLevels)
                   ? 'Locked'
                   : !canAffordSelected
-                    ? 'Not enough Notcoin'
+                    ? 'Not enough NOT'
                     : 'Upgrade'}
             </button>
             <button type="button" className="holders-detail__ghost" onClick={onClose}>

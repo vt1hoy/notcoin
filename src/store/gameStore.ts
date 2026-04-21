@@ -15,9 +15,11 @@ import {
 } from '../game/constants'
 import {
   applyPlayerInfectionSeeds,
+  collectInfectionAnchorPoints,
   findNearestCountryKey,
   getWorldLayout,
   pickMapPopupPoint,
+  RECENT_POPUP_SPAWN_MEMORY,
   stepCountryInfection,
   syncInfectionClusters,
 } from '../game/countrySpread'
@@ -44,6 +46,7 @@ import {
 } from '../game/upgrades/holders'
 import {
   effectiveBelieversPenalties,
+  believerUpgradeEffectiveCost,
   getBelieverUpgrade,
   isBelieverUpgradePurchased,
   isBelieverUpgradeUnlocked,
@@ -56,9 +59,11 @@ import {
 } from '../game/initialState'
 import type {
   EventBannerState,
+  InfectionClustersByCountry,
   InfectionSeed,
   MainPanel,
   MapPopup,
+  RecentPopupSpawn,
   SidePanel,
   TickerLine,
 } from '../game/types'
@@ -69,7 +74,6 @@ export type GameStore = GameStateSnapshot & {
   dismissIntroBriefing: () => void
   openSettings: () => void
   closeSettings: () => void
-  toggleMusic: () => void
   restartRun: () => void
   openMainPanel: (panel: MainPanel) => void
   closeMainPanel: () => void
@@ -105,8 +109,7 @@ function economyOpenDuringRun(s: GameStateSnapshot): boolean {
   return true
 }
 
-const EVENT_SUBLINE =
-  'Simulation time is frozen. Close this briefing to resume the map and economy.'
+const EVENT_SUBLINE = ''
 
 function spawnPopupAt(
   session: number,
@@ -114,24 +117,41 @@ function spawnPopupAt(
   holders: number,
   builders: number,
   countryInfection: Record<string, number>,
-): MapPopup {
+  existingPoints: { x: number; y: number }[],
+  infectionClusters: InfectionClustersByCountry,
+  infectionSeeds: InfectionSeed[],
+  recentPopupSpawns: readonly RecentPopupSpawn[],
+): { popup: MapPopup; countryKey: string } {
   const rewardNotcoin = randomIntInclusive(
     POPUP_REWARD_MIN_NC,
     POPUP_REWARD_MAX_NC,
   )
-  const { x, y } = pickMapPopupPoint(
-    getWorldLayout(),
+  const world = getWorldLayout()
+  const anchors = collectInfectionAnchorPoints(
+    world,
+    infectionClusters,
+    infectionSeeds,
+  )
+  const { x, y, countryKey } = pickMapPopupPoint(
+    world,
     countryInfection,
     believers,
     holders,
     builders,
+    existingPoints,
+    anchors,
+    recentPopupSpawns,
   )
   return {
-    id: crypto.randomUUID(),
-    x,
-    y,
-    rewardNotcoin,
-    expiresAtSessionMs: session + POPUP_TTL_SESSION_MS,
+    popup: {
+      id: crypto.randomUUID(),
+      x,
+      y,
+      rewardNotcoin,
+      expiresAtSessionMs: session + POPUP_TTL_SESSION_MS,
+      spawnedAtSessionMs: session,
+    },
+    countryKey,
   }
 }
 
@@ -171,6 +191,9 @@ export const useGameStore = create<GameStore>((set) => ({
       const nextMain = s.nextMainEventAtSessionMs
       let nextFluff = s.nextFluffTickerAtSessionMs
       let nextPopupAt = s.nextPopupAtSessionMs
+      let recentPopupSpawns = s.recentPopupSpawns
+      const mainEventCategoryCounts = { ...s.mainEventCategoryCounts }
+      let mainEventsSeen = s.mainEventsSeen
 
       const prevCountryInfection = { ...s.countryInfection }
       let infectionSeeds = s.infectionSeeds
@@ -198,13 +221,14 @@ export const useGameStore = create<GameStore>((set) => ({
           countryInfection,
           step.spreadJumps,
           worldLayout,
+          session,
         )
       }
 
       const tickerAdds: TickerLine[] = []
 
       if (session >= nextMain) {
-        const { kind, event: ev } = pickMainEvent(trust)
+        const ev = pickMainEvent(mainEventCategoryCounts, mainEventsSeen)
         const r = applyEventEffects({
           event: ev,
           price,
@@ -218,8 +242,11 @@ export const useGameStore = create<GameStore>((set) => ({
           sessionMapActiveMs: session,
         })
         tickerAdds.push(r.tickerLine)
+        mainEventCategoryCounts[ev.category] =
+          (mainEventCategoryCounts[ev.category] ?? 0) + 1
+        mainEventsSeen += 1
         const banner: EventBannerState = {
-          kind,
+          kind: 'main',
           headline: ev.label,
           priceImpactLine: r.priceImpactLine,
           subline: EVENT_SUBLINE,
@@ -242,6 +269,8 @@ export const useGameStore = create<GameStore>((set) => ({
           nextFluffTickerAtSessionMs: nextFluff,
           nextPopupAtSessionMs: nextPopupAt,
           tickerLines,
+          mainEventCategoryCounts,
+          mainEventsSeen,
           countryInfection,
           infectionClusters,
           infectionSeeds,
@@ -259,16 +288,27 @@ export const useGameStore = create<GameStore>((set) => ({
       }
 
       while (session >= nextPopupAt) {
-        popups = [
-          ...popups,
-          spawnPopupAt(
-            session,
-            believers,
-            holders,
-            builders,
-            countryInfection,
-          ),
-        ]
+        const { popup, countryKey } = spawnPopupAt(
+          session,
+          believers,
+          holders,
+          builders,
+          countryInfection,
+          popups.map((p) => ({ x: p.x, y: p.y })),
+          infectionClusters,
+          infectionSeeds,
+          recentPopupSpawns,
+        )
+        popups = [...popups, popup]
+        recentPopupSpawns = [
+          ...recentPopupSpawns,
+          {
+            x: popup.x,
+            y: popup.y,
+            sessionMs: session,
+            countryKey,
+          },
+        ].slice(-RECENT_POPUP_SPAWN_MEMORY)
         nextPopupAt = session + randomIntInclusive(
           POPUP_SPAWN_MIN_MS,
           POPUP_SPAWN_MAX_MS,
@@ -291,7 +331,10 @@ export const useGameStore = create<GameStore>((set) => ({
         nextMainEventAtSessionMs: nextMain,
         nextFluffTickerAtSessionMs: nextFluff,
         nextPopupAtSessionMs: nextPopupAt,
+        recentPopupSpawns,
         tickerLines,
+        mainEventCategoryCounts,
+        mainEventsSeen,
         countryInfection,
         infectionClusters,
         infectionSeeds,
@@ -302,8 +345,6 @@ export const useGameStore = create<GameStore>((set) => ({
   openSettings: () => set(() => ({ settingsOpen: true })),
 
   closeSettings: () => set(() => ({ settingsOpen: false })),
-
-  toggleMusic: () => set((s) => ({ musicEnabled: !s.musicEnabled })),
 
   restartRun: () => set(() => createInitialState()),
 
@@ -330,7 +371,7 @@ export const useGameStore = create<GameStore>((set) => ({
       }
       const hit = s.popups.find((p) => p.id === id)
       if (!hit) return {}
-      feedback = `+${formatNotcoin(hit.rewardNotcoin)} NC (tap)`
+      feedback = `+${formatNotcoin(hit.rewardNotcoin)} NOT (tap)`
       const worldLayout = getWorldLayout()
       const countryKey =
         worldLayout && worldLayout.infectionKeys.length > 0
@@ -450,25 +491,22 @@ export const useGameStore = create<GameStore>((set) => ({
         s.lastBelieversUpgradeAtSessionMs,
         s.recentBelieversUpgradeCount,
       )
-      const { pricePenaltyPctEffective, trustPenaltyEffective } =
-        effectiveBelieversPenalties(def, stackIndex)
+      const { trustPenaltyEffective } = effectiveBelieversPenalties(def, stackIndex)
 
-      let price = s.price * (1 - pricePenaltyPctEffective)
-      price = Math.max(PRICE_FLOOR, price)
-      const priceMin = Math.min(s.priceMin, price)
-      const priceMax = Math.max(s.priceMax, price)
+      const cost = Math.ceil(
+        believerUpgradeEffectiveCost(def, s.price, s.globalCostMultiplier),
+      )
+      if (s.notcoinBalance < cost) return {}
       const trust = Math.max(
         0,
         Math.min(100, s.trust - trustPenaltyEffective),
       )
 
-      feedback = `Believers: ${def.title} (stack ${stackIndex})`
+      feedback = `Believers: ${def.title}`
       return {
-        notcoinBalance: s.notcoinBalance + def.rewardNotcoin,
+        notcoinBalance: s.notcoinBalance - cost,
         believers: s.believers + def.believersDelta,
-        price,
-        priceMin,
-        priceMax,
+        passivePerSecond: s.passivePerSecond + def.passivePerSecondDelta,
         trust,
         upgradeLevels: { ...s.upgradeLevels, [def.id]: 1 },
         globalCostMultiplier: nextGlobalCostMultiplier(s.globalCostMultiplier),

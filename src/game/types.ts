@@ -10,7 +10,7 @@ export type SidePanel = 'world'
 export type TickerColor = 'gray' | 'green' | 'red'
 
 /** Main-event briefing category — drives banner color and price band. */
-export type EventCategory = 'green' | 'red' | 'gray'
+export type EventCategory = 'positive' | 'negative' | 'neutral'
 
 export type GameUiState = {
   settingsOpen: boolean
@@ -24,6 +24,16 @@ export type MapPopup = {
   y: number
   rewardNotcoin: number
   expiresAtSessionMs: number
+  /** Session time when this popup was spawned (for enter animation). */
+  spawnedAtSessionMs: number
+}
+
+/** Last popup spawn sites for spatial diversity (not persisted across app reload). */
+export type RecentPopupSpawn = {
+  x: number
+  y: number
+  sessionMs: number
+  countryKey: string
 }
 
 /**
@@ -55,6 +65,8 @@ export type InfectionClusterVisual = {
   ox: number
   oy: number
   dots: { dx: number; dy: number }[]
+  /** Session time when this cluster was created (for map decay / pulse strength). */
+  spawnedAtSessionMs: number
 }
 
 /** Per-country list of cluster visuals (length capped by infection tier). */
@@ -62,7 +74,7 @@ export type InfectionClustersByCountry = Record<string, InfectionClusterVisual[]
 
 /** Full-screen news strip while the sim is frozen (Plague-style). */
 export type EventBannerState = {
-  kind: 'world' | 'internal'
+  kind: 'main'
   headline: string
   /** One-line summary of applied price move, e.g. "Token price: +12%". */
   priceImpactLine: string
@@ -74,8 +86,10 @@ export type EventDef = {
   id: string
   label: string
   category: EventCategory
-  /** Fractional move before trust shaping; green/red clamped to ±5%…±70%, gray forced to 0. */
-  pricePct?: number
+  /**
+   * Optional deltas applied with the event. Price move is generated at runtime
+   * (range depends on {@link category}).
+   */
   trustDelta?: number
   believersDelta?: number
   holdersDelta?: number
@@ -83,7 +97,6 @@ export type EventDef = {
   notcoinDelta?: number
 }
 
-export type InternalEventDef = EventDef & {
-  bias: 'positive' | 'negative' | 'neutral'
-  baseWeight: number
+export type WeightedEventDef = EventDef & {
+  weight: number
 }

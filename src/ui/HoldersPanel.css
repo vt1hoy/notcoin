@@ -60,28 +60,84 @@
 }
 
 .holder-card {
-  text-align: left;
   border-radius: 12px;
   border: 1px solid #2a3346;
   background: #121722;
   color: #e9eefc;
-  padding: 10px 10px 9px;
-  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
 }
 
-.holder-card:disabled {
-  cursor: default;
-  opacity: 0.85;
+.holder-card:focus-within {
+  box-shadow: 0 0 0 2px rgba(140, 200, 255, 0.14);
+}
+
+.holder-card.is-selected {
+  background: #141b2a;
+  border-color: rgba(120, 155, 210, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(120, 155, 210, 0.08),
+    0 10px 28px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.holder-card.is-selected:focus-within {
+  box-shadow:
+    0 0 0 2px rgba(140, 200, 255, 0.16),
+    0 0 0 4px rgba(10, 14, 24, 0.28),
+    0 10px 28px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .holder-card--locked {
   opacity: 0.55;
-  cursor: pointer;
 }
 
 .holder-card--purchased {
   border-color: #2f4a35;
   background: #142018;
+}
+
+.holder-card__hit {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 10px 10px 9px;
+  cursor: pointer;
+  outline: none;
+}
+
+.holder-card__hit:active {
+  transform: translateY(1px);
+}
+
+.holder-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+
+.holder-card__upgrade {
+  border-radius: 10px;
+  border: 1px solid #3a4a6d;
+  background: #1a2540;
+  color: #eef3ff;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.holder-card__upgrade:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .holder-card__tier {
@@ -119,6 +175,11 @@
 .holder-card__badge--cost {
   border-color: #3a3f55;
   color: #dbe4ff;
+}
+
+.holder-card__badge--trust {
+  border-color: rgba(47, 74, 53, 0.65);
+  color: #b6f7c8;
 }
 
 .holders-detail {

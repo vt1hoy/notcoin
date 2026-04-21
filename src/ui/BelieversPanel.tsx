@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   type BelieverBranch,
   type BelieverUpgradeDef,
+  believerUpgradeEffectiveCost,
   believerUpgradesForBranch,
   effectiveBelieversPenalties,
   getBelieverUpgrade,
@@ -28,40 +29,92 @@ type CardProps = {
   def: BelieverUpgradeDef
   unlocked: boolean
   purchased: boolean
+  selected: boolean
+  cost: number
+  canAfford: boolean
+  onUpgrade: () => void
   onSelect: () => void
 }
 
-function UpgradeCard({ def, unlocked, purchased, onSelect }: CardProps) {
+function UpgradeCard({
+  def,
+  unlocked,
+  purchased,
+  selected,
+  cost,
+  canAfford,
+  onUpgrade,
+  onSelect,
+}: CardProps) {
   let state: 'locked' | 'purchased' | 'available' = 'available'
   if (purchased) state = 'purchased'
   else if (!unlocked) state = 'locked'
 
   return (
-    <button
-      type="button"
-      className={`believer-card believer-card--${state}`}
-      onClick={onSelect}
-      disabled={state === 'purchased'}
+    <div
+      className={`believer-card believer-card--${state}${selected ? ' is-selected' : ''}`}
+      role="group"
+      aria-label={`${def.title} upgrade`}
     >
-      <div className="believer-card__tier">{tierLabel(def)}</div>
-      <div className="believer-card__title">{def.title}</div>
-      <div className="believer-card__meta">
-        {state === 'locked' && <span className="believer-card__badge">Locked</span>}
-        {state === 'purchased' && (
-          <span className="believer-card__badge believer-card__badge--ok">Purchased</span>
-        )}
-        {state === 'available' && (
-          <span className="believer-card__badge believer-card__badge--reward">
-            +{formatNotcoin(def.rewardNotcoin)} NC
-          </span>
-        )}
+      <button
+        type="button"
+        className="believer-card__hit"
+        onClick={onSelect}
+        aria-label={`Open details for ${def.title}`}
+      >
+        <div className="believer-card__tier">{tierLabel(def)}</div>
+        <div className="believer-card__title">{def.title}</div>
+        <div className="believer-card__meta">
+          {state === 'locked' && <span className="believer-card__badge">Locked</span>}
+          {state === 'purchased' && (
+            <span className="believer-card__badge believer-card__badge--ok">
+              Purchased
+            </span>
+          )}
+          {state === 'available' && (
+            <>
+              <span className="believer-card__badge believer-card__badge--cost">
+                {formatNotcoin(cost)} NOT
+              </span>
+              <span className="believer-card__badge believer-card__badge--passive">
+                +{formatNotcoin(def.passivePerSecondDelta)} NOT/s
+              </span>
+              <span className="believer-card__badge believer-card__badge--penalty">
+                −{def.trustPenalty.toFixed(2)}%
+              </span>
+            </>
+          )}
+        </div>
+      </button>
+
+      <div className="believer-card__actions">
+        <button
+          type="button"
+          className="believer-card__upgrade"
+          disabled={state !== 'available' || !canAfford}
+          onClick={(e) => {
+            e.stopPropagation()
+            onUpgrade()
+          }}
+        >
+          {state === 'purchased'
+            ? 'Purchased'
+            : state === 'locked'
+              ? 'Locked'
+              : !canAfford
+                ? 'Not enough NOT'
+                : 'Upgrade'}
+        </button>
       </div>
-    </button>
+    </div>
   )
 }
 
 export function BelieversPanelContent({ onClose }: { onClose: () => void }) {
   const sessionMapActiveMs = useGameStore((s) => s.sessionMapActiveMs)
+  const price = useGameStore((s) => s.price)
+  const globalCostMultiplier = useGameStore((s) => s.globalCostMultiplier)
+  const notcoinBalance = useGameStore((s) => s.notcoinBalance)
   const lastBelieversUpgradeAtSessionMs = useGameStore(
     (s) => s.lastBelieversUpgradeAtSessionMs,
   )
@@ -85,16 +138,22 @@ export function BelieversPanelContent({ onClose }: { onClose: () => void }) {
       lastBelieversUpgradeAtSessionMs,
       recentBelieversUpgradeCount,
     )
-    return {
-      stackIndex,
-      ...effectiveBelieversPenalties(selected, stackIndex),
-    }
+    return effectiveBelieversPenalties(selected, stackIndex)
   }, [
     selected,
     sessionMapActiveMs,
     lastBelieversUpgradeAtSessionMs,
     recentBelieversUpgradeCount,
   ])
+
+  const selectedCost = useMemo(() => {
+    if (!selected) return 0
+    return Math.ceil(
+      believerUpgradeEffectiveCost(selected, price, globalCostMultiplier),
+    )
+  }, [selected, price, globalCostMultiplier])
+
+  const canAffordSelected = selected ? notcoinBalance >= selectedCost : false
 
   return (
     <div className="believers-panel">
@@ -106,12 +165,20 @@ export function BelieversPanelContent({ onClose }: { onClose: () => void }) {
               {believerUpgradesForBranch(branch).map((def) => {
                 const unlocked = isBelieverUpgradeUnlocked(def, upgradeLevels)
                 const purchased = isBelieverUpgradePurchased(def, upgradeLevels)
+                const cost = Math.ceil(
+                  believerUpgradeEffectiveCost(def, price, globalCostMultiplier),
+                )
+                const canAfford = notcoinBalance >= cost
                 return (
                   <UpgradeCard
                     key={def.id}
                     def={def}
                     unlocked={unlocked}
                     purchased={purchased}
+                    selected={selectedId === def.id}
+                    cost={cost}
+                    canAfford={canAfford}
+                    onUpgrade={() => purchaseBelieversUpgrade(def.id)}
                     onSelect={() => setSelectedId(def.id)}
                   />
                 )
@@ -138,30 +205,20 @@ export function BelieversPanelContent({ onClose }: { onClose: () => void }) {
             </button>
           </div>
           <p className="believers-detail__desc">{selected.description}</p>
-          <p className="believers-detail__stacknote">
-            Burst stack index for this claim: {previewPenalties.stackIndex}. Repeating
-            inside the burst window increases trust loss and price pressure.
-          </p>
           <dl className="believers-detail__stats">
             <div>
-              <dt>Notcoin cost</dt>
-              <dd>Free</dd>
+              <dt>NOT cost</dt>
+              <dd>{formatNotcoin(selectedCost)} NOT</dd>
             </div>
             <div>
-              <dt>Reward</dt>
+              <dt>Passive</dt>
               <dd className="believers-detail__pct">
-                +{formatNotcoin(selected.rewardNotcoin)} NC
+                +{formatNotcoin(selected.passivePerSecondDelta)} NOT/s
               </dd>
             </div>
             <div>
               <dt>Believers</dt>
               <dd>+{formatIntegerCount(selected.believersDelta)}</dd>
-            </div>
-            <div>
-              <dt>Token price</dt>
-              <dd className="believers-detail__pct believers-detail__pct--down">
-                −{(previewPenalties.pricePenaltyPctEffective * 100).toFixed(1)}%
-              </dd>
             </div>
             <div>
               <dt>Trust</dt>
@@ -176,7 +233,8 @@ export function BelieversPanelContent({ onClose }: { onClose: () => void }) {
               className="believers-detail__upgrade"
               disabled={
                 isBelieverUpgradePurchased(selected, upgradeLevels) ||
-                !isBelieverUpgradeUnlocked(selected, upgradeLevels)
+                !isBelieverUpgradeUnlocked(selected, upgradeLevels) ||
+                !canAffordSelected
               }
               onClick={() => {
                 purchaseBelieversUpgrade(selected.id)
@@ -187,7 +245,9 @@ export function BelieversPanelContent({ onClose }: { onClose: () => void }) {
                 ? 'Purchased'
                 : !isBelieverUpgradeUnlocked(selected, upgradeLevels)
                   ? 'Locked'
-                  : 'Claim upgrade'}
+                  : !canAffordSelected
+                    ? 'Not enough NOT'
+                    : 'Upgrade'}
             </button>
             <button type="button" className="believers-detail__ghost" onClick={onClose}>
               Close panel

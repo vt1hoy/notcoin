@@ -1,5 +1,7 @@
 import { GAME_START_MS } from '../game/constants'
 import { buildOverviewDiagnosis } from '../game/overviewDiagnosis'
+import { BUILDER_UPGRADES, isBuilderUpgradePurchased } from '../game/upgrades/builders'
+import { HOLDER_UPGRADES, isHolderUpgradePurchased } from '../game/upgrades/holders'
 import { useGameStore } from '../store/gameStore'
 import { formatInt, formatTrustPercent, formatUsd } from './format'
 import { PlaceholderPanel } from './PlaceholderPanel'
@@ -19,6 +21,7 @@ export function OverviewPanelContent() {
   const believers = useGameStore((s) => s.believers)
   const holders = useGameStore((s) => s.holders)
   const builders = useGameStore((s) => s.builders)
+  const upgradeLevels = useGameStore((s) => s.upgradeLevels)
 
   const diagnosis = buildOverviewDiagnosis({
     believers,
@@ -26,6 +29,12 @@ export function OverviewPanelContent() {
     builders,
     trust,
     price,
+    purchasedHolderUpgrades: HOLDER_UPGRADES.filter((def) =>
+      isHolderUpgradePurchased(def, upgradeLevels),
+    ).length,
+    purchasedBuilderUpgrades: BUILDER_UPGRADES.filter((def) =>
+      isBuilderUpgradePurchased(def, upgradeLevels),
+    ).length,
   })
 
   return (
@@ -39,7 +48,7 @@ export function OverviewPanelContent() {
         <h3 className="overview-panel__h">Snapshot</h3>
         <dl className="overview-panel__dl">
           <div>
-            <dt>Notcoin price</dt>
+            <dt>NOT price</dt>
             <dd>{formatUsd(price)}</dd>
           </div>
           <div>

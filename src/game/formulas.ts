@@ -40,7 +40,8 @@ export function softenNegativePricePct(
 ): number {
   if (pricePctRaw >= 0) return pricePctRaw
   const t = Math.min(1, Math.max(0, trust / 100))
-  const mult = 1.35 * (1 - t) + 0.32 * t
+  // mult = 1.28 - 0.98 * t
+  const mult = 1.28 - 0.98 * t
   return pricePctRaw * mult
 }
 
@@ -65,7 +66,8 @@ export function effectivePricePctForEvent(
     return softenNegativePricePct(pricePctRaw, trust)
   }
   if (pricePctRaw > 0) {
-    return amplifyPositivePricePct(pricePctRaw, trust)
+    // Positive events are trust-independent (apply raw value as-is).
+    return pricePctRaw
   }
   return 0
 }

@@ -14,6 +14,8 @@
 }
 
 .frens-panel__tab {
+  appearance: none;
+  -webkit-appearance: none;
   border: 1px solid #2a3346;
   border-radius: 8px;
   background: #0e131c;
@@ -22,6 +24,8 @@
   font-weight: 500;
   padding: 7px 12px;
   cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .frens-panel__tab:hover {
@@ -29,7 +33,39 @@
   border-color: #3a455c;
 }
 
-.frens-panel__tab--active {
+.frens-panel__tab:active {
+  transform: translateY(1px);
+}
+
+.frens-panel__tab:focus,
+.frens-panel__tab:focus-visible {
+  outline: none;
+}
+
+.frens-panel__tab:focus-visible {
+  box-shadow: 0 0 0 2px rgba(140, 200, 255, 0.22);
+}
+
+.frens-panel__tab.is-selected {
+  color: #0a0e18;
+  background: linear-gradient(180deg, #e8ecf8, #c5ccde);
+  border-color: #9aa7bf;
+}
+
+.frens-panel__tab.is-selected:focus-visible {
+  box-shadow: 0 0 0 2px rgba(10, 14, 24, 0.18), 0 0 0 4px rgba(140, 200, 255, 0.18);
+}
+
+.frens-panel__tab:not(.is-selected):active,
+.frens-panel__tab:not(.is-selected):focus,
+.frens-panel__tab:not(.is-selected):focus-visible {
+  background: #0e131c;
+  color: #b8c4df;
+}
+
+.frens-panel__tab.is-selected:active,
+.frens-panel__tab.is-selected:focus,
+.frens-panel__tab.is-selected:focus-visible {
   color: #0a0e18;
   background: linear-gradient(180deg, #e8ecf8, #c5ccde);
   border-color: #9aa7bf;

@@ -13,6 +13,7 @@ import type {
   InfectionClusterVisual,
   InfectionClustersByCountry,
   InfectionSeed,
+  RecentPopupSpawn,
 } from './types'
 
 /** One rendered path; several may share `infectionKey` (e.g. multi-polygon countries). */
@@ -27,6 +28,12 @@ export type WorldLayout = {
   infectionKeys: string[]
   centroidsByKey: Record<string, { x: number; y: number }>
   neighborsByKey: Record<string, string[]>
+  /**
+   * Precomputed "valid land points" per country (in SVG viewBox coords).
+   * Generated from real SVG path geometry in MapStage and used to place popups
+   * and infection visuals away from oceans/coast bounding boxes.
+   */
+  candidatePointsByKey?: Record<string, { x: number; y: number }[]>
 }
 
 const NEIGHBOR_DIST = 118
@@ -41,6 +48,82 @@ function hashStr(s: string): number {
     h = Math.imul(h, 16777619)
   }
   return h >>> 0
+}
+
+function mulberry32(seed0: number): () => number {
+  let a = seed0 >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+/** Stable spawn-time jitter (SVG px) so hotspots are not on a rigid grid. */
+function clusterSpawnJitterPx(
+  countryKey: string,
+  slotIndex: number,
+): { jx: number; jy: number } {
+  const rng = mulberry32(hashStr(`${countryKey}|sj|${slotIndex}`))
+  return {
+    jx: (rng() - 0.5) * 13,
+    jy: (rng() - 0.5) * 11,
+  }
+}
+
+/** How many recent popup spawns we keep for anti-repeat placement (FIFO ring). */
+export const RECENT_POPUP_SPAWN_MEMORY = 24
+
+const POPUP_MIN_DIST_PX = 122
+const POPUP_INFECTION_ANCHOR_CHANCE = 0.24
+const POPUP_INFECTION_JITTER_X = 200
+const POPUP_INFECTION_JITTER_Y = 158
+
+/** Min world distance between red hotspot centers (new vs existing). */
+const CLUSTER_MIN_DIST_STRICT_PX = 56
+const CLUSTER_MIN_DIST_RELAX_PX = 42
+const CLUSTER_MIN_DIST_LAST_RESORT_PX = 30
+const CLUSTER_PLACEMENT_TRIES = 52
+
+function dist2(ax: number, ay: number, bx: number, by: number): number {
+  const dx = ax - bx
+  const dy = ay - by
+  return dx * dx + dy * dy
+}
+
+function isFarEnoughFrom(
+  x: number,
+  y: number,
+  others: readonly { x: number; y: number }[],
+  minD: number,
+): boolean {
+  const r2 = minD * minD
+  for (const p of others) {
+    if (dist2(x, y, p.x, p.y) <= r2) return false
+  }
+  return true
+}
+
+/** World positions of infection clusters + tap seeds (for popup “near spread” spawns). */
+export function collectInfectionAnchorPoints(
+  world: WorldLayout | null,
+  clusters: InfectionClustersByCountry,
+  seeds: readonly InfectionSeed[],
+): { x: number; y: number }[] {
+  if (!world?.infectionKeys.length) return []
+  const out: { x: number; y: number }[] = []
+  for (const [key, list] of Object.entries(clusters)) {
+    const c = world.centroidsByKey[key]
+    if (!c || !list?.length) continue
+    for (const cl of list) {
+      out.push({ x: c.x + cl.ox, y: c.y + cl.oy })
+    }
+  }
+  for (const s of seeds) {
+    out.push({ x: s.x, y: s.y })
+  }
+  return out
 }
 
 export function parseSvgViewBox(svgText: string): { width: number; height: number } {
@@ -94,6 +177,7 @@ export function registerWorldPaths(paths: WorldPathDef[]): void {
 
 export function completeWorldLayoutFromCentroids(
   centroidByRenderId: Record<string, { x: number; y: number }>,
+  candidatePointsByKey?: Record<string, { x: number; y: number }[]>,
 ): void {
   if (!parsedPaths?.length) return
 
@@ -137,7 +221,7 @@ export function completeWorldLayoutFromCentroids(
     }
   }
 
-  layout = { infectionKeys, centroidsByKey, neighborsByKey }
+  layout = { infectionKeys, centroidsByKey, neighborsByKey, candidatePointsByKey }
 }
 
 export function getWorldLayout(): WorldLayout | null {
@@ -276,7 +360,8 @@ export function applyPlayerInfectionSeeds(
     const cur = nextLevels[key] ?? 0
     const push =
       PLAYER_SEED_COUNTRY_PUSH_PER_S *
-      Math.max(0.06, growthLevel) *
+      // Stronger early "local push" after tap, without over-accelerating late-game.
+      Math.max(0.22, growthLevel) *
       Math.pow(Math.max(0.001, 1 - cur), 1.12) *
       dt
     nextLevels[key] = Math.min(1, cur + push)
@@ -325,18 +410,104 @@ export function stableClusterDots(
 export function makeClusterVisual(
   countryKey: string,
   slotIndex: number,
+  world: WorldLayout | null | undefined,
+  spawnedAtSessionMs: number,
+  avoidWorld: readonly { x: number; y: number }[],
 ): InfectionClusterVisual {
-  let seed = hashStr(`${countryKey}|cluster|${slotIndex}|pos`)
-  seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
-  const ox = ((seed % 4096) / 4096) * 44 - 22
-  seed = (Math.imul(seed, 1103515245) + 12345) >>> 0
-  const oy = ((seed % 4096) / 4096) * 40 - 20
-  return {
+  const centroid = world?.centroidsByKey?.[countryKey]
+  const candidates = world?.candidatePointsByKey?.[countryKey]
+
+  const finish = (ox: number, oy: number): InfectionClusterVisual => ({
     id: `${countryKey}-c${slotIndex}`,
     ox,
     oy,
     dots: stableClusterDots(countryKey, slotIndex, DOTS_PER_CLUSTER),
+    spawnedAtSessionMs,
+  })
+
+  const tryWithMinD = (minD: number): InfectionClusterVisual | null => {
+    if (!centroid) return null
+
+    if (candidates && candidates.length > 0) {
+      const rng = mulberry32(
+        (hashStr(`${countryKey}|cvis|${slotIndex}`) ^
+          spawnedAtSessionMs ^
+          (avoidWorld.length * 2654435761)) >>>
+          0,
+      )
+      for (let attempt = 0; attempt < CLUSTER_PLACEMENT_TRIES; attempt++) {
+        const idx =
+          (Math.floor(rng() * candidates.length) + attempt * 17) %
+          candidates.length
+        const p = candidates[idx]!
+        const { jx, jy } = clusterSpawnJitterPx(
+          countryKey,
+          slotIndex + attempt * 31,
+        )
+        const ox = p.x - centroid.x + jx * 1.2
+        const oy = p.y - centroid.y + jy * 1.2
+        const wx = centroid.x + ox
+        const wy = centroid.y + oy
+        if (isFarEnoughFrom(wx, wy, avoidWorld, minD)) {
+          return finish(ox, oy)
+        }
+      }
+    }
+
+    let seed =
+      hashStr(`${countryKey}|cluster|${slotIndex}|fb`) ^ spawnedAtSessionMs
+    for (let attempt = 0; attempt < 22; attempt++) {
+      seed = (Math.imul(seed, 1664525) + 1013904223 + attempt) >>> 0
+      let ox = ((seed % 4096) / 4096) * 56 - 28
+      seed = (Math.imul(seed, 1103515245) + 12345) >>> 0
+      let oy = ((seed % 4096) / 4096) * 50 - 25
+      const { jx, jy } = clusterSpawnJitterPx(
+        countryKey,
+        slotIndex + attempt * 13,
+      )
+      ox += jx
+      oy += jy
+      const wx = centroid.x + ox
+      const wy = centroid.y + oy
+      if (isFarEnoughFrom(wx, wy, avoidWorld, minD)) {
+        return finish(ox, oy)
+      }
+    }
+    return null
   }
+
+  let vis =
+    tryWithMinD(CLUSTER_MIN_DIST_STRICT_PX) ??
+    tryWithMinD(CLUSTER_MIN_DIST_RELAX_PX) ??
+    tryWithMinD(CLUSTER_MIN_DIST_LAST_RESORT_PX)
+
+  if (!vis && centroid) {
+    if (candidates && candidates.length > 0) {
+      const rng = mulberry32(hashStr(`${countryKey}|cvis|lr|${slotIndex}`))
+      const p = candidates[Math.floor(rng() * candidates.length)]!
+      const { jx, jy } = clusterSpawnJitterPx(countryKey, slotIndex + 999)
+      vis = finish(p.x - centroid.x + jx, p.y - centroid.y + jy)
+    } else {
+      let seed = hashStr(`${countryKey}|cluster|${slotIndex}|lr`)
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
+      const ox = ((seed % 4096) / 4096) * 44 - 22
+      seed = (Math.imul(seed, 1103515245) + 12345) >>> 0
+      const oy = ((seed % 4096) / 4096) * 40 - 20
+      const { jx, jy } = clusterSpawnJitterPx(countryKey, slotIndex)
+      vis = finish(ox + jx, oy + jy)
+    }
+  }
+
+  if (!vis) {
+    return {
+      id: `${countryKey}-c${slotIndex}`,
+      ox: 0,
+      oy: 0,
+      dots: stableClusterDots(countryKey, slotIndex, DOTS_PER_CLUSTER),
+      spawnedAtSessionMs,
+    }
+  }
+  return vis
 }
 
 /**
@@ -349,24 +520,67 @@ export function syncInfectionClusters(
   nextLevels: Record<string, number>,
   spreadJumps: string[],
   world: WorldLayout,
+  sessionMapActiveMs: number,
 ): InfectionClustersByCountry {
   const jumpSet = new Set(spreadJumps)
   const next: InfectionClustersByCountry = {}
+
+  const worldClusterPos = (
+    k: string,
+    cl: InfectionClusterVisual,
+  ): { x: number; y: number } | null => {
+    const cent = world.centroidsByKey[k]
+    if (!cent) return null
+    return { x: cent.x + cl.ox, y: cent.y + cl.oy }
+  }
 
   for (const key of world.infectionKeys) {
     const prev = prevLevels[key] ?? 0
     const nextLv = nextLevels[key] ?? 0
     const maxSlots = maxClusterSlotsForLevel(nextLv)
-    const arr = [...(prevClusters[key] ?? [])]
+    const arr = (prevClusters[key] ?? []).map((c) => ({
+      ...c,
+      spawnedAtSessionMs:
+        c.spawnedAtSessionMs ??
+        Math.max(0, sessionMapActiveMs - 120_000),
+    }))
 
     while (arr.length > maxSlots) {
       arr.pop()
     }
 
+    const collectAvoidWorld = (): { x: number; y: number }[] => {
+      const out: { x: number; y: number }[] = []
+      for (const k of world.infectionKeys) {
+        if (k === key) {
+          for (const cl of arr) {
+            const wp = worldClusterPos(k, cl)
+            if (wp) out.push(wp)
+          }
+          return out
+        }
+        const list = next[k]
+        if (!list?.length) continue
+        for (const cl of list) {
+          const wp = worldClusterPos(k, cl)
+          if (wp) out.push(wp)
+        }
+      }
+      return out
+    }
+
     const tryAdd = () => {
       if (arr.length >= maxSlots) return
       const slot = arr.length
-      arr.push(makeClusterVisual(key, slot))
+      arr.push(
+        makeClusterVisual(
+          key,
+          slot,
+          world,
+          sessionMapActiveMs,
+          collectAvoidWorld(),
+        ),
+      )
     }
 
     if (arr.length === 0 && nextLv > 0.008) {
@@ -420,14 +634,16 @@ export function pickMapPopupPoint(
   believers: number,
   holders: number,
   builders: number,
-): { x: number; y: number } {
+  existingPoints?: { x: number; y: number }[],
+  infectionAnchors?: readonly { x: number; y: number }[],
+  recentSpawns?: readonly RecentPopupSpawn[],
+): { x: number; y: number; countryKey: string } {
   const w = MAP_VIEWBOX.width
   const h = MAP_VIEWBOX.height
   if (!world?.infectionKeys.length) {
-    return {
-      x: w * 0.35 + (Math.random() - 0.5) * 120,
-      y: h * 0.42 + (Math.random() - 0.5) * 100,
-    }
+    const x = w * (0.18 + Math.random() * 0.64)
+    const y = h * (0.16 + Math.random() * 0.68)
+    return { x, y, countryKey: '' }
   }
 
   const factionWeight =
@@ -437,30 +653,111 @@ export function pickMapPopupPoint(
     Math.min(0.6, builders / 25_000)
 
   const keys = world.infectionKeys
-  const weights = keys.map((key) => {
+  const baseWeights = keys.map((key) => {
     const lvl = levels[key] ?? 0
     return 0.04 + lvl * lvl * 2.2 * factionWeight + (lvl > 0.12 ? 0.15 : 0)
   })
-  let total = weights.reduce((a, b) => a + b, 0)
-  if (total <= 0) total = keys.length
 
-  let roll = Math.random() * total
-  let chosen = keys[keys.length - 1]!
-  for (let i = 0; i < keys.length; i++) {
-    const wi = total <= 0 ? 1 : weights[i]!
-    roll -= wi
-    if (roll <= 0) {
-      chosen = keys[i]!
-      break
+  const recent = recentSpawns ?? []
+  const tail = recent.slice(-12)
+  const countByKey: Record<string, number> = {}
+  for (const r of tail) {
+    if (!r.countryKey) continue
+    countByKey[r.countryKey] = (countByKey[r.countryKey] ?? 0) + 1
+  }
+  const lastCountry = tail[tail.length - 1]?.countryKey
+  const prevCountry = tail[tail.length - 2]?.countryKey
+
+  const pickWeightedCountry = (): string => {
+    const adj = keys.map((key, i) => {
+      let wi = baseWeights[i]!
+      const cnt = countByKey[key] ?? 0
+      if (cnt >= 4) wi *= 0.2
+      else if (cnt >= 3) wi *= 0.32
+      else if (cnt === 2) wi *= 0.5
+      else if (cnt === 1) wi *= 0.72
+      if (key === lastCountry) wi *= 0.62
+      if (key === lastCountry && key === prevCountry) wi *= 0.42
+      return wi
+    })
+    let t = adj.reduce((a, b) => a + b, 0)
+    if (t <= 0) t = keys.length
+    let roll = Math.random() * t
+    let chosen = keys[keys.length - 1]!
+    for (let i = 0; i < keys.length; i++) {
+      const wi = t <= 0 ? 1 : adj[i]!
+      roll -= wi
+      if (roll <= 0) {
+        chosen = keys[i]!
+        break
+      }
+    }
+    return chosen
+  }
+
+  const avoid: { x: number; y: number }[] = [...(existingPoints ?? [])]
+  for (const r of recent) {
+    avoid.push({ x: r.x, y: r.y })
+  }
+
+  const minDist = POPUP_MIN_DIST_PX
+  const tooClose = (x: number, y: number) => {
+    for (const p of avoid) {
+      if (dist2(x, y, p.x, p.y) < minDist * minDist) return true
+    }
+    return false
+  }
+
+  const anchors = infectionAnchors ?? []
+
+  for (let attempt = 0; attempt < 38; attempt++) {
+    const chosen = pickWeightedCountry()
+    const c = world.centroidsByKey[chosen] ?? { x: w / 2, y: h / 2 }
+    const candidates = world.candidatePointsByKey?.[chosen] ?? null
+
+    let x = c.x
+    let y = c.y
+
+    const useHotspot =
+      anchors.length > 0 && Math.random() < POPUP_INFECTION_ANCHOR_CHANCE
+    if (useHotspot) {
+      const a = anchors[(Math.random() * anchors.length) | 0]!
+      x = a.x + (Math.random() - 0.5) * POPUP_INFECTION_JITTER_X
+      y = a.y + (Math.random() - 0.5) * POPUP_INFECTION_JITTER_Y
+    } else if (candidates && candidates.length > 0) {
+      const i0 = (Math.random() * candidates.length) | 0
+      const i1 = (i0 + 1 + ((Math.random() * (candidates.length - 1)) | 0)) %
+        candidates.length
+      const pick =
+        attempt % 2 === 0 ? candidates[i0]! : candidates[i1]!
+      x = pick.x + (Math.random() - 0.5) * 58
+      y = pick.y + (Math.random() - 0.5) * 48
+    } else {
+      x = c.x + (Math.random() - 0.5) * 88
+      y = c.y + (Math.random() - 0.5) * 72
+    }
+    x = Math.max(16, Math.min(w - 16, x))
+    y = Math.max(16, Math.min(h - 16, y))
+    if (!tooClose(x, y)) {
+      const countryKey = findNearestCountryKey(world, x, y)
+      return { x, y, countryKey }
     }
   }
 
-  const c = world.centroidsByKey[chosen] ?? { x: w / 2, y: h / 2 }
-  const jx = (Math.random() - 0.5) * 28
-  const jy = (Math.random() - 0.5) * 22
-  return {
-    x: Math.max(16, Math.min(w - 16, c.x + jx)),
-    y: Math.max(16, Math.min(h - 16, c.y + jy)),
+  const fallbackKey = pickWeightedCountry()
+  const fallback = world.centroidsByKey[fallbackKey] ?? {
+    x: w / 2,
+    y: h / 2,
   }
+  const x = Math.max(
+    16,
+    Math.min(w - 16, fallback.x + (Math.random() - 0.5) * 100),
+  )
+  const y = Math.max(
+    16,
+    Math.min(h - 16, fallback.y + (Math.random() - 0.5) * 86),
+  )
+  const countryKey = findNearestCountryKey(world, x, y)
+  return { x, y, countryKey }
 }
 

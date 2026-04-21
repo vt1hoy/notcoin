@@ -1,18 +1,8 @@
-import { GAME_START_MS } from '../game/constants'
 import { useGameStore } from '../store/gameStore'
 import './IntroBriefingModal.css'
 
-function formatListingDateUtc(ms: number): string {
-  const d = new Date(ms)
-  const dd = String(d.getUTCDate()).padStart(2, '0')
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const yyyy = d.getUTCFullYear()
-  return `${dd}.${mm}.${yyyy}`
-}
-
 export function IntroBriefingModal() {
   const dismissIntroBriefing = useGameStore((s) => s.dismissIntroBriefing)
-  const listing = formatListingDateUtc(GAME_START_MS)
 
   return (
     <div
@@ -29,17 +19,21 @@ export function IntroBriefingModal() {
         </h2>
         <div className="intro-briefing__body">
           <p>
-            Hello, fren. Notcoin went live on <strong>{listing}</strong>—one
-            line on a long calendar, but a door for many stories after it.
+            Notcoin launched on <strong>16.05.2024</strong>.
           </p>
+
           <p>
-            To some players it stays a tap-and-smile curiosity. To others it is
-            noise. To a few, it might grow into something heavier than the joke
-            suggests.
+            It started simple.
+            <br />
+            It did not stay that way.
           </p>
-          <p className="intro-briefing__last">
-            The next minutes are yours to push: attention, depth, trust, and
-            price will answer how loud this chapter gets.
+
+          <p>Notcoin is what you push it to become.</p>
+
+          <p>
+            You have a few minutes.
+            <br />
+            Make it something.
           </p>
         </div>
         <button

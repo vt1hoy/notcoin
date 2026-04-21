@@ -1,22 +1,13 @@
 import { PRICE_FLOOR, PRICE_PCT_CLAMP } from './constants'
 // edit values in src/game/config/events.json
-import {
-  INTERNAL_EVENTS,
-  pickRandomWorldEvent,
-  WORLD_EVENTS,
-} from './config/eventsFromJson'
+import { MAIN_EVENTS } from './config/eventsFromJson'
 import { effectivePricePctForEvent } from './formulas'
 import type {
   EventCategory,
-  EventDef,
-  InternalEventDef,
   TickerColor,
   TickerLine,
+  WeightedEventDef,
 } from './types'
-
-const GAMMA = 2
-
-export { INTERNAL_EVENTS, WORLD_EVENTS, pickRandomWorldEvent }
 
 export function randomIntInclusive(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -27,21 +18,13 @@ function clampTrust(n: number): number {
 }
 
 function tickerColorFromCategory(c: EventCategory): TickerColor {
-  if (c === 'green') return 'green'
-  if (c === 'red') return 'red'
+  if (c === 'positive') return 'green'
+  if (c === 'negative') return 'red'
   return 'gray'
 }
 
-/** Clamp declared price move to category bands (fractional). */
-export function clampPricePctForCategory(
-  category: EventCategory,
-  raw: number,
-): number {
-  if (category === 'gray') return 0
-  if (category === 'green') {
-    return Math.max(0.05, Math.min(0.7, raw))
-  }
-  return Math.max(-0.7, Math.min(-0.05, raw))
+function randFloat(min: number, max: number): number {
+  return min + Math.random() * (max - min)
 }
 
 export function formatTokenPriceImpactLine(pricePctEffective: number): string {
@@ -52,37 +35,67 @@ export function formatTokenPriceImpactLine(pricePctEffective: number): string {
   return `Token price: ${sign}${rounded}%`
 }
 
-function internalPickWeight(e: InternalEventDef, trust: number): number {
-  const t = trust / 100
-  const inv = (100 - trust) / 100
-  if (e.bias === 'positive') return e.baseWeight * Math.pow(t, GAMMA)
-  if (e.bias === 'negative') return e.baseWeight * Math.pow(inv, GAMMA)
-  return e.baseWeight
-}
-
-export function pickInternalEvent(trust: number): InternalEventDef {
-  let total = 0
-  const weights = INTERNAL_EVENTS.map((e) => {
-    const w = internalPickWeight(e, trust)
-    total += w
-    return w
-  })
+function weightedPick<T extends { weight: number }>(list: T[]): T {
+  const total = list.reduce((s, e) => s + (e.weight || 0), 0) || list.length
   let r = Math.random() * total
-  for (let i = 0; i < INTERNAL_EVENTS.length; i++) {
-    r -= weights[i]!
-    if (r <= 0) return INTERNAL_EVENTS[i]!
+  for (const e of list) {
+    r -= e.weight || 0
+    if (r <= 0) return e
   }
-  return INTERNAL_EVENTS[INTERNAL_EVENTS.length - 1]!
+  return list[list.length - 1]!
 }
 
-export type MainEventPick = { kind: 'world' | 'internal'; event: EventDef }
+export type EventCategoryCounts = Record<EventCategory, number>
 
-/** One combined headline stream: either world or internal (trust-weighted when internal). */
-export function pickMainEvent(trust: number): MainEventPick {
-  if (Math.random() < 0.5) {
-    return { kind: 'world', event: pickRandomWorldEvent() }
+const TARGET_RATIO: Record<EventCategory, number> = {
+  negative: 0.4,
+  positive: 0.35,
+  neutral: 0.25,
+}
+
+function pickCategoryWithQuota(
+  counts: EventCategoryCounts,
+  totalSeen: number,
+): EventCategory {
+  const nextN = totalSeen + 1
+  const deficits: Record<EventCategory, number> = {
+    negative: Math.max(0, nextN * TARGET_RATIO.negative - (counts.negative ?? 0)),
+    positive: Math.max(0, nextN * TARGET_RATIO.positive - (counts.positive ?? 0)),
+    neutral: Math.max(0, nextN * TARGET_RATIO.neutral - (counts.neutral ?? 0)),
   }
-  return { kind: 'internal', event: pickInternalEvent(trust) }
+  const sum = deficits.negative + deficits.positive + deficits.neutral
+
+  // If everything is on-target (or early rounding cancels out), fall back to base ratios.
+  const base: Record<EventCategory, number> =
+    sum > 0
+      ? deficits
+      : {
+          negative: TARGET_RATIO.negative,
+          positive: TARGET_RATIO.positive,
+          neutral: TARGET_RATIO.neutral,
+        }
+
+  const total = base.negative + base.positive + base.neutral
+  let r = Math.random() * total
+  r -= base.negative
+  if (r <= 0) return 'negative'
+  r -= base.positive
+  if (r <= 0) return 'positive'
+  return 'neutral'
+}
+
+/** Main event selection from one shared pool with per-session category nudging. */
+export function pickMainEvent(
+  counts: EventCategoryCounts,
+  totalSeen: number,
+): WeightedEventDef {
+  const cat = pickCategoryWithQuota(counts, totalSeen)
+  const list = MAIN_EVENTS.filter((e) => e.category === cat)
+  if (list.length === 0) {
+    // Fallback: pick from full pool (should not happen if config is valid).
+    return weightedPick(MAIN_EVENTS)
+  }
+  return weightedPick(list)
 }
 
 export function makeCosmeticTickerLine(
@@ -99,7 +112,7 @@ export function makeCosmeticTickerLine(
 }
 
 export type EventApplyParams = {
-  event: EventDef
+  event: WeightedEventDef
   price: number
   priceMin: number
   priceMax: number
@@ -126,15 +139,19 @@ export type EventApplyResult = {
 
 export function applyEventEffects(p: EventApplyParams): EventApplyResult {
   const category = p.event.category
-  const rawClamped = clampPricePctForCategory(
-    category,
-    p.event.pricePct ?? 0,
-  )
-  const shaped = effectivePricePctForEvent(rawClamped, p.trust)
-  const pricePctEffective = Math.max(
-    -PRICE_PCT_CLAMP,
-    Math.min(PRICE_PCT_CLAMP, shaped),
-  )
+  const basePricePct =
+    category === 'positive'
+      ? randFloat(0.05, 0.5)
+      : category === 'negative'
+        ? randFloat(-0.6, -0.05)
+        : randFloat(-0.05, 0.05)
+
+  const shaped = effectivePricePctForEvent(basePricePct, p.trust)
+  let pricePctEffective = Math.max(-PRICE_PCT_CLAMP, Math.min(PRICE_PCT_CLAMP, shaped))
+  if (category === 'negative') {
+    // Hard floor: effective negative move cannot be worse than -85%.
+    pricePctEffective = Math.max(-0.85, pricePctEffective)
+  }
 
   let price = p.price * (1 + pricePctEffective)
   price = Math.max(PRICE_FLOOR, price)

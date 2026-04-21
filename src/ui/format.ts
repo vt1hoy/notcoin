@@ -65,5 +65,5 @@ export function formatNotcoin(n: number): string {
 
 /** Same as {@link formatNotcoin} with an explicit unit suffix. */
 export function formatNotcoinWithUnit(n: number): string {
-  return `${formatNotcoin(n)} NC`
+  return `${formatNotcoin(n)} NOT`
 }

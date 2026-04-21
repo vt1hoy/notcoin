@@ -1,5 +1,10 @@
 import { MainScreen } from './ui/MainScreen'
+import { OrientationGuard } from './ui/OrientationGuard'
 
 export default function App() {
-  return <MainScreen />
+  return (
+    <OrientationGuard>
+      <MainScreen />
+    </OrientationGuard>
+  )
 }
