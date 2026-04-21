@@ -1,13 +1,22 @@
 .main-screen {
-  height: 100svh;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
   background: radial-gradient(1200px 600px at 50% 0%, #121a2b, #07090f);
   color: #e9eefc;
   box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
 }
 
 .main-screen__map-wrap {
@@ -183,5 +192,68 @@
 
   .hud-card {
     width: min(240px, 54vw);
+  }
+}
+
+/* Portrait phone/tablet: stack map (~60–70% visual) + controls, no clipping */
+@media (orientation: portrait) and (max-width: 920px) {
+  .main-screen__map-wrap {
+    flex-direction: column;
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
+    padding: 6px 8px 6px;
+  }
+
+  .main-screen__map-wrap > .map-stage {
+    flex: 1 1 auto;
+    min-height: min(42dvh, 260px);
+    max-height: min(72dvh, 580px);
+  }
+
+  .main-screen__stats-bottom {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    padding: 4px 6px 2px;
+    margin-top: 6px;
+    flex: 0 0 auto;
+    z-index: 6;
+  }
+
+  .main-screen__hud-right {
+    top: 40px;
+    right: 8px;
+  }
+}
+
+/* Short landscape (Telegram toolbar, small phones): tighten HUD + chrome */
+@media (orientation: landscape) and (max-height: 460px) {
+  .main-screen__map-wrap {
+    padding: 4px 6px 6px;
+  }
+
+  .main-screen__hud-right {
+    top: max(4px, env(safe-area-inset-top, 0px));
+    right: 6px;
+  }
+
+  .hud-card {
+    width: min(200px, 36vw);
+    padding: 7px 8px 6px;
+  }
+
+  .hud-balance__v {
+    font-size: 1.02rem;
+  }
+
+  .hud-card__row {
+    padding-top: 4px;
+  }
+
+  .main-screen__stats-bottom {
+    bottom: max(4px, env(safe-area-inset-bottom, 0px));
+    padding: 0 6px;
   }
 }

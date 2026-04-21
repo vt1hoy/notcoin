@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react'
 import { useLandscapeFirstMobile } from '../hooks/useLandscapeFirstMobile'
-import { PortraitOrientationOverlay } from './PortraitOrientationOverlay'
+import { LandscapeHintBanner } from './LandscapeHintBanner'
 
 export function OrientationGuard({ children }: { children: ReactNode }) {
-  const { shouldBlockForPortrait } = useLandscapeFirstMobile()
+  const { showLandscapeHint } = useLandscapeFirstMobile()
 
-  if (shouldBlockForPortrait) {
-    return <PortraitOrientationOverlay />
-  }
-
-  return <>{children}</>
+  return (
+    <>
+      {showLandscapeHint ? <LandscapeHintBanner /> : null}
+      {children}
+    </>
+  )
 }
-

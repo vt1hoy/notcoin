@@ -59,12 +59,13 @@ export function useLandscapeFirstMobile() {
     }
   }, [])
 
-  const shouldBlockForPortrait = isProbablyMobile && orientation === 'portrait'
+  /** True on coarse/small viewports in portrait — show soft hint only; never block play. */
+  const showLandscapeHint = isProbablyMobile && orientation === 'portrait'
 
   return {
     isProbablyMobile,
     orientation,
-    shouldBlockForPortrait,
+    showLandscapeHint,
   }
 }
 

@@ -21,10 +21,16 @@
 .intro-briefing {
   position: fixed;
   inset: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
   z-index: 210;
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: max(12px, env(safe-area-inset-top, 0px))
+    max(14px, env(safe-area-inset-right, 0px))
+    max(14px, env(safe-area-inset-bottom, 0px))
+    max(14px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
   animation: introBriefingFadeIn 0.42s ease-out;
 }
 
@@ -38,8 +44,10 @@
 .intro-briefing__panel {
   position: relative;
   width: min(480px, 100%);
-  max-height: min(90vh, 640px);
-  overflow: auto;
+  max-height: min(88dvh, 90vh, 640px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 16px;
   border: 1px solid #2f3a52;
   background: linear-gradient(165deg, #121a2a 0%, #0b0f18 55%, #0a0d14 100%);
