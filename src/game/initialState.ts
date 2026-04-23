@@ -19,6 +19,8 @@ import type {
 
 export type GameStateSnapshot = {
   sessionMapActiveMs: number
+  /** True once the world SVG + layout (centroids + candidate points) is ready. */
+  worldReady: boolean
   price: number
   priceMin: number
   priceMax: number
@@ -72,6 +74,7 @@ const TICKER_MAX = 40
 export function createInitialState(): GameStateSnapshot {
   return {
     sessionMapActiveMs: 0,
+    worldReady: false,
     price: INITIAL_PRICE,
     priceMin: INITIAL_PRICE,
     priceMax: INITIAL_PRICE,

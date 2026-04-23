@@ -127,6 +127,7 @@ export function MapStage() {
   )
   const [layoutGen, setLayoutGen] = useState(0)
 
+  const setWorldReady = useGameStore((s) => s.setWorldReady)
   const popups = useGameStore((s) => s.popups)
   const clickPopup = useGameStore((s) => s.clickPopup)
   const countryInfection = useGameStore((s) => s.countryInfection)
@@ -159,9 +160,11 @@ export function MapStage() {
         setSvgText(text)
         setViewBox(parseSvgViewBox(text))
         setLoadError(null)
+        setWorldReady(false)
       })
       .catch(() => {
         if (!cancelled) setLoadError('Could not load world map')
+        setWorldReady(false)
       })
     return () => {
       cancelled = true
@@ -282,6 +285,10 @@ export function MapStage() {
       }
 
       completeWorldLayoutFromCentroids(centroids, candidatePointsByKey)
+      const nextLayout = getWorldLayout()
+      if (nextLayout && nextLayout.infectionKeys.length > 0) {
+        setWorldReady(true)
+      }
       setLayoutGen((g) => g + 1)
     }
 

@@ -71,6 +71,8 @@ import { formatNotcoin } from '../ui/format'
 
 export type GameStore = GameStateSnapshot & {
   tick: (dtWallMs: number) => void
+  /** Called by MapStage once the world layout is ready. */
+  setWorldReady: (ready: boolean) => void
   dismissIntroBriefing: () => void
   openSettings: () => void
   closeSettings: () => void
@@ -157,6 +159,8 @@ function spawnPopupAt(
 
 export const useGameStore = create<GameStore>((set) => ({
   ...createInitialState(),
+
+  setWorldReady: (ready) => set(() => ({ worldReady: ready })),
 
   dismissIntroBriefing: () => set(() => ({ introBriefingOpen: false })),
 
