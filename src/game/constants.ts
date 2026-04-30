@@ -15,7 +15,8 @@ export const PRICE_FLOOR = 0.0001
 /** Fixed supply for market cap display (price × supply). */
 export const NOTCOIN_SUPPLY = 100_000_000_000
 
-export const SIM_INTERVAL_MS = 50
+// Performance: lower tick frequency; dtWallMs keeps gameplay timing consistent.
+export const SIM_INTERVAL_MS = 100
 
 /** Popup lifetime on the map (scaled for 5-minute run). */
 export const POPUP_TTL_SESSION_MS = 2_200

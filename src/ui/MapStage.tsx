@@ -14,6 +14,7 @@ import {
   parseSvgViewBox,
   parseWorldSvgPaths,
   registerWorldPaths,
+  setWorldLayout,
   type WorldPathDef,
 } from '../game/countrySpread'
 import { useGameStore } from '../store/gameStore'
@@ -22,6 +23,9 @@ import './MapStage.css'
 
 const WORLD_MAP_URL = publicAssetUrl('maps/world.svg')
 const NOTCOIN_LOGO_URL = publicAssetUrl('maps/notcoin_logo.svg')
+
+const WORLD_LAYOUT_CACHE_KEY = 'worldLayout_v1'
+const MAX_CANDIDATES_PER_COUNTRY = 40
 
 function pathDomId(renderId: string): string {
   return `wm-${renderId}`
@@ -126,6 +130,7 @@ export function MapStage() {
     MAP_VIEWBOX,
   )
   const [layoutGen, setLayoutGen] = useState(0)
+  const [layoutRestored, setLayoutRestored] = useState(false)
 
   const setWorldReady = useGameStore((s) => s.setWorldReady)
   const popups = useGameStore((s) => s.popups)
@@ -186,6 +191,60 @@ export function MapStage() {
     const measure = () => {
       const root = svgRef.current
       if (!root) return
+
+      // Fast path: restore a cached layout for this exact set of infection keys.
+      if (!layoutRestored) {
+        try {
+          const raw = localStorage.getItem(WORLD_LAYOUT_CACHE_KEY)
+          if (raw) {
+            const cached = JSON.parse(raw) as unknown
+            const obj = cached as {
+              infectionKeys?: unknown
+              centroidsByKey?: unknown
+              neighborsByKey?: unknown
+              candidatePointsByKey?: unknown
+            }
+            const infectionKeys = Array.isArray(obj?.infectionKeys)
+              ? (obj.infectionKeys as string[]).filter((k) => typeof k === 'string')
+              : null
+            const centroidsByKey =
+              obj?.centroidsByKey && typeof obj.centroidsByKey === 'object'
+                ? (obj.centroidsByKey as Record<string, { x: number; y: number }>)
+                : null
+            const neighborsByKey =
+              obj?.neighborsByKey && typeof obj.neighborsByKey === 'object'
+                ? (obj.neighborsByKey as Record<string, string[]>)
+                : null
+            const candidatePointsByKey =
+              obj?.candidatePointsByKey && typeof obj.candidatePointsByKey === 'object'
+                ? (obj.candidatePointsByKey as Record<string, { x: number; y: number }[]>)
+                : undefined
+
+            const expectedKeys = Array.from(new Set(paths.map((p) => p.infectionKey))).sort()
+            const cachedKeys = infectionKeys ? [...infectionKeys].sort() : null
+            const keysMatch =
+              cachedKeys &&
+              cachedKeys.length === expectedKeys.length &&
+              cachedKeys.every((k, i) => k === expectedKeys[i])
+
+            if (infectionKeys && centroidsByKey && neighborsByKey && keysMatch) {
+              setWorldLayout({
+                infectionKeys,
+                centroidsByKey,
+                neighborsByKey,
+                candidatePointsByKey,
+              })
+              setLayoutRestored(true)
+              setWorldReady(true)
+              setLayoutGen((g) => g + 1)
+              return
+            }
+          }
+        } catch {
+          // Ignore cache errors; fall back to full compute.
+        }
+      }
+
       const centroids: Record<string, { x: number; y: number }> = {}
       const byKey = new Map<string, SVGPathElement[]>()
       for (const p of paths) {
@@ -280,7 +339,7 @@ export function MapStage() {
         }
 
         if (points.length) {
-          candidatePointsByKey[key] = points
+          candidatePointsByKey[key] = points.slice(0, MAX_CANDIDATES_PER_COUNTRY)
         }
       }
 
@@ -288,6 +347,12 @@ export function MapStage() {
       const nextLayout = getWorldLayout()
       if (nextLayout && nextLayout.infectionKeys.length > 0) {
         setWorldReady(true)
+        // Cache for next load (skip expensive SVG geometry sampling).
+        try {
+          localStorage.setItem(WORLD_LAYOUT_CACHE_KEY, JSON.stringify(nextLayout))
+        } catch {
+          /* ignore */
+        }
       }
       setLayoutGen((g) => g + 1)
     }

@@ -47,6 +47,8 @@ export type GameStateSnapshot = {
   popups: MapPopup[]
   /** Recent Notcoin popup spawn positions + countries (spatial + geographic variety). */
   recentPopupSpawns: RecentPopupSpawn[]
+  /** Ring-buffer write index for {@link recentPopupSpawns}. */
+  recentPopupIndex: number
   nextPopupAtSessionMs: number
   nextMainEventAtSessionMs: number
   nextFluffTickerAtSessionMs: number
@@ -94,6 +96,7 @@ export function createInitialState(): GameStateSnapshot {
     activeSidePanel: null,
     popups: [],
     recentPopupSpawns: [],
+    recentPopupIndex: 0,
     nextPopupAtSessionMs: randomIntInclusive(
       POPUP_SPAWN_MIN_MS,
       POPUP_SPAWN_MAX_MS,

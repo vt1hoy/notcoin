@@ -113,6 +113,9 @@ function economyOpenDuringRun(s: GameStateSnapshot): boolean {
 
 const EVENT_SUBLINE = ''
 
+// Performance caps to avoid runaway allocations in long sessions.
+const MAX_POPUPS = 25
+
 function spawnPopupAt(
   session: number,
   believers: number,
@@ -182,7 +185,17 @@ export const useGameStore = create<GameStore>((set) => ({
       const notcoinBalance =
         s.notcoinBalance + s.passivePerSecond * (effectiveDtMs / 1000)
 
-      let popups = s.popups.filter((p) => p.expiresAtSessionMs > session)
+      const popups = s.popups.filter((p) => p.expiresAtSessionMs > session)
+
+      // Performance: if the elapsed wall time is tiny, advance only the lightweight counters.
+      // This reduces “micro-tick” overhead without changing long-term timing.
+      if (effectiveDtMs < 30) {
+        return {
+          sessionMapActiveMs: session,
+          notcoinBalance,
+          popups,
+        }
+      }
 
       const price = s.price
       const priceMin = s.priceMin
@@ -195,7 +208,8 @@ export const useGameStore = create<GameStore>((set) => ({
       const nextMain = s.nextMainEventAtSessionMs
       let nextFluff = s.nextFluffTickerAtSessionMs
       let nextPopupAt = s.nextPopupAtSessionMs
-      let recentPopupSpawns = s.recentPopupSpawns
+      const recentPopupSpawns = s.recentPopupSpawns
+      let recentPopupIndex = s.recentPopupIndex
       const mainEventCategoryCounts = { ...s.mainEventCategoryCounts }
       let mainEventsSeen = s.mainEventsSeen
 
@@ -292,6 +306,14 @@ export const useGameStore = create<GameStore>((set) => ({
       }
 
       while (session >= nextPopupAt) {
+        if (popups.length >= MAX_POPUPS) {
+          // Skip spawning more until next cadence tick.
+          nextPopupAt = session + randomIntInclusive(
+            POPUP_SPAWN_MIN_MS,
+            POPUP_SPAWN_MAX_MS,
+          )
+          break
+        }
         const { popup, countryKey } = spawnPopupAt(
           session,
           believers,
@@ -303,16 +325,27 @@ export const useGameStore = create<GameStore>((set) => ({
           infectionSeeds,
           recentPopupSpawns,
         )
-        popups = [...popups, popup]
-        recentPopupSpawns = [
-          ...recentPopupSpawns,
-          {
+        popups.push(popup)
+
+        // Performance: fixed-size ring buffer (no array reallocation each spawn).
+        if (recentPopupSpawns.length < RECENT_POPUP_SPAWN_MEMORY) {
+          recentPopupSpawns.push({
             x: popup.x,
             y: popup.y,
             sessionMs: session,
             countryKey,
-          },
-        ].slice(-RECENT_POPUP_SPAWN_MEMORY)
+          })
+          recentPopupIndex = recentPopupSpawns.length % RECENT_POPUP_SPAWN_MEMORY
+        } else {
+          recentPopupSpawns[recentPopupIndex] = {
+            x: popup.x,
+            y: popup.y,
+            sessionMs: session,
+            countryKey,
+          }
+          recentPopupIndex =
+            (recentPopupIndex + 1) % RECENT_POPUP_SPAWN_MEMORY
+        }
         nextPopupAt = session + randomIntInclusive(
           POPUP_SPAWN_MIN_MS,
           POPUP_SPAWN_MAX_MS,
@@ -336,6 +369,7 @@ export const useGameStore = create<GameStore>((set) => ({
         nextFluffTickerAtSessionMs: nextFluff,
         nextPopupAtSessionMs: nextPopupAt,
         recentPopupSpawns,
+        recentPopupIndex,
         tickerLines,
         mainEventCategoryCounts,
         mainEventsSeen,

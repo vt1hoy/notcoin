@@ -41,6 +41,14 @@ const NEIGHBOR_DIST = 118
 let parsedPaths: WorldPathDef[] | null = null
 let layout: WorldLayout | null = null
 
+/**
+ * Sets layout directly (used for localStorage restore).
+ * Rendering still relies on `parsedPaths`; this is only the derived geometry graph.
+ */
+export function setWorldLayout(next: WorldLayout | null): void {
+  layout = next
+}
+
 function hashStr(s: string): number {
   let h = 2166136261
   for (let i = 0; i < s.length; i++) {
@@ -85,6 +93,13 @@ const CLUSTER_MIN_DIST_STRICT_PX = 56
 const CLUSTER_MIN_DIST_RELAX_PX = 42
 const CLUSTER_MIN_DIST_LAST_RESORT_PX = 30
 const CLUSTER_PLACEMENT_TRIES = 52
+
+// Requested hard caps (do not currently raise visuals; existing caps are lower).
+const MAX_CLUSTERS_GLOBAL = 120
+const MAX_CLUSTERS_PER_COUNTRY = 5
+
+// Performance: avoid O(n^2) global avoid lists. Only consider the most recent N clusters.
+const CLUSTER_AVOID_LAST_N = 30
 
 function dist2(ax: number, ay: number, bx: number, by: number): number {
   const dx = ax - bx
@@ -534,10 +549,18 @@ export function syncInfectionClusters(
     return { x: cent.x + cl.ox, y: cent.y + cl.oy }
   }
 
+  // Flat list of already-chosen cluster centers (world coords), used for spacing.
+  // We keep only the tail to bound work per new cluster.
+  const avoidTail: { x: number; y: number }[] = []
+  let globalCount = 0
+
   for (const key of world.infectionKeys) {
     const prev = prevLevels[key] ?? 0
     const nextLv = nextLevels[key] ?? 0
-    const maxSlots = maxClusterSlotsForLevel(nextLv)
+    const maxSlots = Math.min(
+      MAX_CLUSTERS_PER_COUNTRY,
+      maxClusterSlotsForLevel(nextLv),
+    )
     const arr = (prevClusters[key] ?? []).map((c) => ({
       ...c,
       spawnedAtSessionMs:
@@ -549,28 +572,19 @@ export function syncInfectionClusters(
       arr.pop()
     }
 
-    const collectAvoidWorld = (): { x: number; y: number }[] => {
-      const out: { x: number; y: number }[] = []
-      for (const k of world.infectionKeys) {
-        if (k === key) {
-          for (const cl of arr) {
-            const wp = worldClusterPos(k, cl)
-            if (wp) out.push(wp)
-          }
-          return out
-        }
-        const list = next[k]
-        if (!list?.length) continue
-        for (const cl of list) {
-          const wp = worldClusterPos(k, cl)
-          if (wp) out.push(wp)
-        }
-      }
-      return out
+    // Seed avoid list with already-existing clusters in this same country.
+    // (These might be from a prior tick; preserve spacing within country.)
+    for (const cl of arr) {
+      const wp = worldClusterPos(key, cl)
+      if (wp) avoidTail.push(wp)
+    }
+    if (avoidTail.length > CLUSTER_AVOID_LAST_N) {
+      avoidTail.splice(0, avoidTail.length - CLUSTER_AVOID_LAST_N)
     }
 
     const tryAdd = () => {
       if (arr.length >= maxSlots) return
+      if (globalCount >= MAX_CLUSTERS_GLOBAL) return
       const slot = arr.length
       arr.push(
         makeClusterVisual(
@@ -578,9 +592,18 @@ export function syncInfectionClusters(
           slot,
           world,
           sessionMapActiveMs,
-          collectAvoidWorld(),
+          // Performance: only consider the most recent cluster centers.
+          avoidTail.slice(-CLUSTER_AVOID_LAST_N),
         ),
       )
+      const wp = worldClusterPos(key, arr[arr.length - 1]!)
+      if (wp) {
+        avoidTail.push(wp)
+        if (avoidTail.length > CLUSTER_AVOID_LAST_N) {
+          avoidTail.splice(0, avoidTail.length - CLUSTER_AVOID_LAST_N)
+        }
+      }
+      globalCount += 1
     }
 
     if (arr.length === 0 && nextLv > 0.008) {
